@@ -9,6 +9,7 @@ class UserService {
     required String email,
     required String name,
     required String password,
+    required String jenisKelamin,
     required int batchId,
     required int trainingId,
   }) async {
@@ -19,13 +20,14 @@ class UserService {
         "name": name,
         "email": email,
         "password": password,
+        "jenis_kelamin": jenisKelamin,
         "batch_id": batchId.toString(),
         "training_id": trainingId.toString(),
       },
     );
 
-    print("Status: \${response.statusCode}");
-    print("Body: \${response.body}");
+    print("Status: ${response.statusCode}");
+    print("Body: ${response.body}");
 
     final jsonResponse = jsonDecode(response.body);
 

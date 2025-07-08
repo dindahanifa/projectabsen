@@ -43,6 +43,7 @@ class User {
   final String name;
   final String email;
   final String password;
+  final String jenisKelamin;
   final int batchId;
   final int trainingId;
 
@@ -51,6 +52,7 @@ class User {
     required this.name,
     required this.email,
     required this.password,
+    required this.jenisKelamin,
     required this.batchId,
     required this.trainingId,
   });
@@ -60,6 +62,7 @@ class User {
         name: json["name"],
         email: json["email"],
         password: json["password"],
+        jenisKelamin: json["jenisKelamin"],
         batchId: json["batch_id"],
         trainingId: json["training_id"],
       );
@@ -69,6 +72,7 @@ class User {
         "name": name,
         "email": email,
         "password": password,
+        "jenisKelamin": jenisKelamin,
         "batch_id": batchId,
         "training_id": trainingId,
       };

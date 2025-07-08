@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projectabsen/aplikasi/user_absen.dart';
 import 'package:projectabsen/aplikasi/splash_screen.dart';
 import 'package:projectabsen/aplikasi/welcome_screen.dart';
 
@@ -16,6 +17,7 @@ class MyApp extends StatelessWidget {
       routes: {
         "/": (context) => SplashScreen(),
         "/welcomeScreen": (context) => WelcomeScreen(),
+        UserScreen.id: (context) => UserScreen()
       },
       debugShowCheckedModeBanner: false,
       title: 'Project Ketiga',

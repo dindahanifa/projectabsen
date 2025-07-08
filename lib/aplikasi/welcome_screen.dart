@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projectabsen/aplikasi/user_absen.dart';
 import 'package:video_player/video_player.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -45,6 +46,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         children: [
                           ElevatedButton(
                             onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                        context, 
+                        MaterialPageRoute(builder: (context)=> UserScreen()), 
+                        (route)=> false
+                        );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,

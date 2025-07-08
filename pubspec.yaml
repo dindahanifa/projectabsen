@@ -42,6 +42,8 @@ dependencies:
   google_maps_flutter: ^2.12.3
   geocoding: ^4.0.0
   video_player: ^2.10.0
+  table_calendar: ^3.2.0
+  google_fonts: ^6.2.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -72,8 +74,26 @@ flutter:
   assets:
   # image
   - assets/image/splash.jpg
+  - assets/image/bg.png
+  - assets/image/bgdua.png
   # videos
   - assets/videos/welcome.mp4
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter_variabel.ttf
+          weight: 400
+        - asset: assets/fonts/Inter_Italic.ttf
+          style: italic
+
+    - family: Jost
+      fonts:
+        - asset: assets/fonts/Jost-Variable.ttf
+
+    - family: VarelaRound
+      fonts:
+        - asset: assets/fonts/VarelaRound-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
