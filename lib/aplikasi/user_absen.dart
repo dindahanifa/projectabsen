@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:projectabsen/aplikasi/home_absen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:projectabsen/api/api_user.dart';
 import 'package:projectabsen/utils/shared_prefences.dart' as PreferenceHandler;
@@ -75,6 +76,8 @@ class _UserScreenState extends State<UserScreen> {
       );
 
       if (loginRequest["data"] != null) {
+      setState(() => isLoading = false);
+
         final token = loginRequest["data"]['token'];
         final user = loginRequest["data"]['user'];
 
@@ -88,13 +91,21 @@ class _UserScreenState extends State<UserScreen> {
           content: Text("Login berhasil!", style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.white,
         ));
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(builder: (context) => const HomeScreen())
+          );
       } else if (loginRequest["errors"] != null) {
+      setState(() => isLoading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Maaf, ${loginRequest["message"]}"),
           backgroundColor: Colors.white,
         ));
       }
     } catch (e) {
+      setState(() => isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Terjadi kesalahan: $e"),
         backgroundColor: Colors.white,
@@ -104,9 +115,11 @@ class _UserScreenState extends State<UserScreen> {
     setState(() {
       isLoading = false;
     });
+    
   }
 
   void _handleSignUp() async {
+print("Test click");
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
@@ -126,6 +139,8 @@ class _UserScreenState extends State<UserScreen> {
       return;
     }
 
+    setState(() => isLoading = true);
+
     try {
       final registerRequest = await userService.registerUser(
         name: _usernameController.text,
@@ -136,10 +151,20 @@ class _UserScreenState extends State<UserScreen> {
         trainingId: selectedTrainingId!,
       );
 
+print("registerRequest");
 print(registerRequest);
-print(registerRequest["data"]);
 print(registerRequest["errors"]);
+print(registerRequest["message"]);
       if (registerRequest["data"] != null) {
+      setState(() => isLoading = false);
+
+        final data = registerRequest["data"];
+        final user = data["user"];
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('nama', user['name'] ?? '');
+        prefs.setString('email', user['email'] ?? '');
+        prefs.setString('training_id', user['training_id'].toString());
+        
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Register berhasil!", style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.white,
@@ -155,15 +180,23 @@ print(registerRequest["errors"]);
             selectedTrainingId = null;
           });
         });
-      } else if (registerRequest["errors"] != null) {
+      } else {
+        print("object");
+    setState(() => isLoading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Maaf, ${registerRequest["message"]}"),
+          content: Text("Maaf, ${registerRequest["message"]}", style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.white,
         ));
+
       }
-    } catch (e) {
+    } catch (e, stackrace) {
+    setState(() => isLoading = false);
+
+      print(e);
+      print(stackrace);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Terjadi kesalahan: $e"),
+        content: Text("Terjadi kesalahan: $e", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
       ));
     }
@@ -247,7 +280,9 @@ print(registerRequest["errors"]);
         onPressed: onPressed,
         padding: EdgeInsets.symmetric(vertical: 15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        child: Text(
+        child:
+        isLoading ==true? CircularProgressIndicator():
+         Text(
           text,
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),

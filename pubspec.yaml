@@ -76,6 +76,7 @@ flutter:
   - assets/image/splash.jpg
   - assets/image/bg.png
   - assets/image/bgdua.png
+  - assets/image/card.png
   # videos
   - assets/videos/welcome.mp4
 

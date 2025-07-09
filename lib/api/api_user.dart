@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:projectabsen/model/profil_model.dart';
+import 'package:projectabsen/model/registererror_model.dart';
 import 'package:projectabsen/utils/endpoint.dart';
 import 'package:projectabsen/model/user_model.dart';
 import 'package:projectabsen/utils/shared_prefences.dart';
@@ -32,11 +34,12 @@ class UserService {
     final jsonResponse = jsonDecode(response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+      print("Kesini");
       return UserResponse.fromJson(jsonResponse).toJson();
     } else if (response.statusCode == 422) {
       return UserResponse.fromJson(jsonResponse).toJson();
     } else {
-      throw Exception("Gagal registrasi: \${response.statusCode}");
+      throw Exception("Gagal registrasi: ${response.statusCode}");
     }
   }
 
@@ -50,8 +53,8 @@ class UserService {
       body: {"email": email, "password": password},
     );
 
-    print("Status: \${response.statusCode}");
-    print("Body: \${response.body}");
+    print("Status: ${response.statusCode}");
+    print("Body: ${response.body}");
 
     final jsonResponse = jsonDecode(response.body);
 
@@ -64,16 +67,68 @@ class UserService {
         await PreferenceHandler.saveToken(token);
         await PreferenceHandler.saveUserId(userId);
         await PreferenceHandler.saveLogin(true);
-        print("Token: \$token");
-        print("UserId: \$userId");
+        print("Token: $token");
+        print("UserId: $userId");
       }
 
       return userResponse.toJson();
     } else if (response.statusCode == 422) {
       return UserResponse.fromJson(jsonResponse).toJson();
     } else {
-      print("Login gagal: \${response.statusCode}");
-      throw Exception("Login gagal: \${response.statusCode}");
+      print("Login gagal: ${response.statusCode}");
+      throw Exception("Login gagal: ${response.statusCode}");
+    }
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    String? token = await PreferenceHandler.getToken();
+    if (token == null) {
+      throw Exception('Token tidak ditemukan, silakan login ulang');
+    }
+
+    final response = await http.get(
+      Uri.parse(Endpoint.profil),
+      headers: {
+        "Accept": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
+    
+    if (response.statusCode == 200) {
+      return userProfileFromJson(response.body).toJson();
+    } else if (response.statusCode == 422) {
+      return registerErrorResponseFromJson(response.body).toJson();
+    } else {
+      print("Gagal mengambil profil: ${response.statusCode}");
+      throw Exception("Gagal mengambil profil: ${response.statusCode}");
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(String name) async {
+    String? token = await PreferenceHandler.getToken();
+    if (token == null) {
+      throw Exception('Token tidak ditemukan, silakan login ulang');
+    }
+    final response = await http.put(
+      Uri.parse(Endpoint.profil),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {'name': name},
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      return userResponseFromJson(response.body).toJson();
+    } else if (response.statusCode == 422) {
+      return registerErrorResponseFromJson(response.body).toJson();
+    } else {
+      print("Gagal memperbarui profil: ${response.statusCode}");
+      throw Exception("Gagal memperbarui profil: ${response.statusCode}");
     }
   }
 }

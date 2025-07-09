@@ -4,6 +4,9 @@ class PreferenceHandler {
   static const String _loginKey = "login";
   static const String _tokenKey = "token";
   static const String _userIdKey = "user_id";
+  static const String _usernameKey = "username";
+  static const String _batchIdKey = "batch_id";
+  static const String _profileImageKey = "profile_image";
 
   // Simpan status login (true/false)
   static Future<void> saveLogin(bool login) async {
@@ -57,5 +60,29 @@ class PreferenceHandler {
   static Future<void> deleteUserId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userIdKey);
+  }
+
+  // Save Username
+  static Future<void> saveUsername(String name) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('username', name);
+  }
+
+  // Get Username
+  static Future<String?> getUsername() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('username');
+  }
+
+  // Save Batch ID
+  static Future<void> saveBatchId(String batchKe) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('batch_id', batchKe);
+  }
+
+  // Get Batch ID
+  static Future<String?> getBatchId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('batch_id');
   }
 }
