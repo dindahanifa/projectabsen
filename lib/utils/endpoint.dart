@@ -12,4 +12,6 @@ class Endpoint {
   static const String deleteAbsen = "$baseUrlApi/deleteAbsen";
   static const String riwayatAbsen = "$baseUrlApi/riwayatAbsen";
   static const String allDataUser = "$baseUrlApi/allDataUser";
+  static const String ajukanIzin = "$baseUrlApi/ajukanIzin";
+  static const String updatePhotoProfile = "$baseUrlApi/profile/photo";
 }  

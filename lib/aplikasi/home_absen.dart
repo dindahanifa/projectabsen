@@ -4,9 +4,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:projectabsen/api/api_user.dart';
 import 'package:projectabsen/api/api_absen.dart';
+import 'package:projectabsen/aplikasi/edit_profil_absen.dart';
+import 'package:projectabsen/aplikasi/kirim_absen.dart';
 import 'package:projectabsen/model/absen_model.dart';
+import 'package:projectabsen/aplikasi/riwayat_absen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,25 +22,76 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    HomeContent(),
+    RiwayatAbsenScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _widgetOptions[_selectedIndex],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const KirimAbsenScreen()));
+        },
+        backgroundColor: const Color(0xFF0C1D40),
+        child: const Icon(Icons.add, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 6,
+        height: 56,
+        color: const Color(0xFFFFF1F2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home, size: 24),
+              color: _selectedIndex == 0 ? Colors.blue : Colors.grey,
+              onPressed: () => _onTabTapped(0),
+            ),
+            const SizedBox(width: 48),
+            IconButton(
+              icon: const Icon(Icons.history, size: 24),
+              color: _selectedIndex == 1 ? Colors.blue : Colors.grey,
+              onPressed: () => _onTabTapped(1),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeContent extends StatefulWidget {
+  const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
   final UserService userService = UserService();
-  File? _image;
   AbsenModel? kehadiranToday;
+  double? distanceFromPlace;
+  final targetLat = -0.933094;
+  final targetLng = 100.361142;
 
   @override
   void initState() {
     super.initState();
-    _loadImage();
     _loadAbsenToday();
-  }
-
-  Future<void> _loadImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('profile_image');
-    if (imagePath != null && File(imagePath).existsSync()) {
-      setState(() {
-        _image = File(imagePath);
-      });
-    }
+    _calculateDistance();
   }
 
   Future<void> _loadAbsenToday() async {
@@ -52,202 +109,259 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final savedImage =
-          await File(pickedFile.path).copy('${appDir.path}/$fileName.jpg');
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('profile_image', savedImage.path);
-
+  Future<void> _calculateDistance() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      double distanceInMeters = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        targetLat,
+        targetLng,
+      );
       setState(() {
-        _image = savedImage;
+        distanceFromPlace = distanceInMeters;
       });
+    } catch (e) {
+      debugPrint('Gagal mendapatkan lokasi: $e');
     }
   }
 
-  void _showEditNameDialog(String currentName) {
-    final nameController = TextEditingController(text: currentName);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Nama Pengguna'),
-        content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(labelText: 'Nama'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newName = nameController.text.trim();
-              if (newName.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Nama tidak boleh kosong')),
-                );
-                return;
-              }
-              await userService.updateProfile(newName);
-              setState(() {});
-              Navigator.of(context).pop();
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
+  String _formatTime(DateTime time) {
+    return "${time.hour.toString().padLeft(2, '0')} : ${time.minute.toString().padLeft(2, '0')} : ${time.second.toString().padLeft(2, '0')}";
+  }
+
+  String _formatDate(DateTime time) {
+    return "${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][time.weekday % 7]}\n${time.day.toString().padLeft(2, '0')}-${time.month.toString().padLeft(2, '0')}-${time.year.toString().substring(2)}";
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: FutureBuilder(
-        future: userService.getProfile(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return FutureBuilder(
+      future: userService.getProfile(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Gagal memuat data: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text('Data pengguna tidak tersedia'));
+        }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Gagal memuat data: ${snapshot.error}'));
-          }
-
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('Data pengguna tidak tersedia'));
-          }
-
-          final rawData = snapshot.data as Map<String, dynamic>;
-          final user = rawData['data'] ?? rawData;
-
-          final name = user['name']?.toString() ?? 'Pengguna';
-          final batch = user['batch_id'] is Map && user['batch_id']?['batch'] != null
-              ? user['batch_id']['batch'].toString()
-              : 'Batch tidak tersedia';
-          final profileUrl =
-              user['profile_photo'] is String ? user['profile_photo'] : '';
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                GestureDetector(
-                  onTap: () => _showEditNameDialog(name),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      image: const DecorationImage(
-                        image: AssetImage("assets/image/card.png"),
-                        fit: BoxFit.cover,
+        final rawData = snapshot.data as Map<String, dynamic>;
+        final user = rawData['data'] ?? rawData;
+        final name = user['name']?.toString() ?? 'Pengguna';
+        final trainingName = user['training_title'] ?? 'Tidak ada pelatihan';
+print(user['training_title']);
+print(user['training']?['title']);
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 32),
+              GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfilScreen())),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    image: const DecorationImage(
+                        image: AssetImage('assets/image/card.png'),
+                        fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 32,
+                        backgroundColor: Colors.pinkAccent,
+                        child: Icon(Icons.person, size: 32, color: Colors.white),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundImage: profileUrl.isNotEmpty
-                              ? NetworkImage(profileUrl)
-                              : null,
-                          child: profileUrl.isEmpty
-                              ? const Icon(Icons.person, size: 32)
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name,
-                                style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
-                            Text("Training ID: $batch",
-                                style: const TextStyle(
-                                    fontSize: 14, color: Colors.white)),
-                          ],
-                        )
-                      ],
-                    ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                          Text("Pelatihan: $trainingName",
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.white)),
+                        ],
+                      )
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF80D0FF),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            kehadiranToday?.checkInAddress ?? "Alamat tidak tersedia",
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF68BDFE),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text("Check In",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  kehadiranToday?.checkIn != null
+                                      ? _formatTime(kehadiranToday!.checkIn!)
+                                      : "-",
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            height: 40,
+                            width: 1,
+                            color: Colors.white54,
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text("Check Out",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  kehadiranToday?.checkOut != null
+                                      ? _formatTime(kehadiranToday!.checkOut!)
+                                      : "-",
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (distanceFromPlace != null)
+                      Text(
+                        "Jarak ke lokasi: ${distanceFromPlace!.toStringAsFixed(0)} meter",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text("Riwayat Kehadiran",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              if (kehadiranToday?.createdAt != null)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade200),
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(blurRadius: 4, color: Colors.black12),
-                    ],
-                  ),
-                  child: kehadiranToday == null
-                      ? const Text("Belum ada data kehadiran hari ini.")
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Status: ${kehadiranToday!.status.toUpperCase()}",
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(height: 4),
-                            Text("Lokasi: ${kehadiranToday!.checkInAddress ?? '-'}"),
-                            if (kehadiranToday!.checkOutAddress != null) ...[
-                              const Divider(),
-                              Text("Check Out: ${kehadiranToday!.checkOutAddress!}"),
-                            ],
-                            if (kehadiranToday!.alasanIzin != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  "Alasan: ${kehadiranToday!.alasanIzin!}",
-                                  style: const TextStyle(color: Colors.red),
-                                ),
-                              ),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(blurRadius: 4, color: Colors.black12)
-                    ],
                   ),
-                  child: TableCalendar(
-                    focusedDay: DateTime.now(),
-                    firstDay: DateTime.utc(2024, 1, 1),
-                    lastDay: DateTime.utc(2026, 12, 31),
-                    headerStyle: const HeaderStyle(
-                      formatButtonVisible: false,
-                      titleCentered: true,
-                    ),
-                    calendarStyle: const CalendarStyle(
-                      todayDecoration: BoxDecoration(
-                        color: Color(0xFF558B2F),
-                        shape: BoxShape.circle,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formatDate(kehadiranToday!.createdAt!),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
+                      Column(
+                        children: [
+                          const Text("Check In"),
+                          Text(kehadiranToday?.checkIn != null
+                              ? _formatTime(kehadiranToday!.checkIn!)
+                              : "-")
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Text("Check Out"),
+                          Text(kehadiranToday?.checkOut != null
+                              ? _formatTime(kehadiranToday!.checkOut!)
+                              : "-")
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 4, color: Colors.black12),
+                  ],
+                ),
+                child: TableCalendar(
+                  focusedDay: DateTime.now(),
+                  firstDay: DateTime.utc(2024, 1, 1),
+                  lastDay: DateTime.utc(2026, 12, 31),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                  ),
+                  calendarStyle: const CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Color(0xFF558B2F),
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

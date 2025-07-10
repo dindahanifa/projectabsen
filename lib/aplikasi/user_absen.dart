@@ -86,6 +86,9 @@ class _UserScreenState extends State<UserScreen> {
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('nama', user['name']);
         prefs.setString('email', user['email']);
+        if (user['training_id'] != null) {
+          prefs.setString('training_id', user['training_id'].toString());
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Login berhasil!", style: TextStyle(color: Colors.black)),
@@ -119,7 +122,9 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   void _handleSignUp() async {
-print("Test click");
+  print("Test click");
+  print('Selected Training ID: $selectedTrainingId');
+
     if (_usernameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||

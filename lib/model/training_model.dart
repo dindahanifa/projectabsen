@@ -26,6 +26,7 @@ class TrainingModel {
 
   TrainingModel({
     required this.id,
+     
     required this.title,
     this.description,
     this.participantCount,

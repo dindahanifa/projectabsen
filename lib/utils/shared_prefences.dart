@@ -74,15 +74,15 @@ class PreferenceHandler {
   return prefs.getString('username');
   }
 
-  // Save Batch ID
-  static Future<void> saveBatchId(String batchKe) async {
+  // Save Training ID
+  static Future<void> saveTrainigId(String batchKe) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('batch_id', batchKe);
+  await prefs.setString('training_id', batchKe);
   }
 
-  // Get Batch ID
-  static Future<String?> getBatchId() async {
+  // Get Training ID
+  static Future<String?> getTrainingId() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('batch_id');
+  return prefs.getString('training_id');
   }
 }

@@ -82,8 +82,6 @@ class User {
     factory User.fromJson(Map<String, dynamic> json) => User(
         name: json["name"],
         email: json["email"],
-        // batchId: json["batch_id"],
-        // trainingId: json["training_id"],
         jenisKelamin: json["jenis_kelamin"],
         profilePhoto: json["profile_photo"],
         updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
