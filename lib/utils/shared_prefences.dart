@@ -6,83 +6,95 @@ class PreferenceHandler {
   static const String _userIdKey = "user_id";
   static const String _usernameKey = "username";
   static const String _batchIdKey = "batch_id";
+  static const String _trainingIdKey = "training_id";
   static const String _profileImageKey = "profile_image";
 
-  // Simpan status login (true/false)
+  // ✅ LOGIN STATUS
   static Future<void> saveLogin(bool login) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_loginKey, login);
   }
 
-  // Ambil status login
   static Future<bool> getLogin() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_loginKey) ?? false;
   }
 
-  // Simpan token
+  // ✅ TOKEN
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  // Ambil token
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
 
-  // Simpan userId
+  // ✅ USER ID
   static Future<void> saveUserId(int id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_userIdKey, id);
   }
 
-  // Ambil userId
   static Future<int?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_userIdKey);
   }
 
-  // Hapus status login
-  static Future<void> deleteLogin() async {
+  // ✅ USERNAME / NAME
+  static Future<void> saveUsername(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_usernameKey, name);
+  }
+
+  static Future<String?> getUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_usernameKey);
+  }
+
+  // ✅ BATCH ID
+  static Future<void> saveBatchId(int batchId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_batchIdKey, batchId);
+  }
+
+  static Future<int?> getBatchId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_batchIdKey);
+  }
+
+  // ✅ TRAINING ID
+  static Future<void> saveTrainingId(int trainingId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_trainingIdKey, trainingId);
+  }
+
+  static Future<int?> getTrainingId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_trainingIdKey);
+  }
+
+  // ✅ PROFILE PHOTO
+  static Future<void> saveProfilePhoto(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileImageKey, url);
+  }
+
+  static Future<String?> getProfilePhoto() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_profileImageKey);
+  }
+
+  // ✅ HAPUS SEMUA (Logout)
+  static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_loginKey);
-  }
-
-  // Hapus token
-  static Future<void> deleteToken() async {
-    final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
-  }
-
-  // Hapus userId
-  static Future<void> deleteUserId() async {
-    final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userIdKey);
-  }
-
-  // Save Username
-  static Future<void> saveUsername(String name) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('username', name);
-  }
-
-  // Get Username
-  static Future<String?> getUsername() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('username');
-  }
-
-  // Save Training ID
-  static Future<void> saveTrainigId(String batchKe) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('training_id', batchKe);
-  }
-
-  // Get Training ID
-  static Future<String?> getTrainingId() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('training_id');
+    await prefs.remove(_usernameKey);
+    await prefs.remove(_batchIdKey);
+    await prefs.remove(_trainingIdKey);
+    await prefs.remove(_profileImageKey);
   }
 }
