@@ -1,12 +1,17 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:projectabsen/model/absen_model.dart';
 import 'package:projectabsen/api/api_absen.dart';
+import 'package:projectabsen/model/absen_co_request.dart';
+import 'package:projectabsen/model/absen_model.dart';
+import 'package:projectabsen/model/absen_request.dart';
+import 'package:projectabsen/model/absen_today.dart';
+import 'package:projectabsen/model/ajukanIzin_request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:geocoding/geocoding.dart';
 
 class KirimAbsenScreen extends StatefulWidget {
   const KirimAbsenScreen({super.key});
@@ -18,24 +23,37 @@ class KirimAbsenScreen extends StatefulWidget {
 class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
-  String _currentAddress = "Memuat alamat...";
-  AbsenModel? _todayAbsenData;
-  List<AbsenModel> _attendanceHistory = [];
+  String _currentAddress = "Memuat lokasi...";
+  AbsenToday? _todayAbsenData;
   bool _isLoading = true;
-  bool _takePhoto = false;
-  File? _pickedImage;
   String _userToken = '';
+  String _currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _loadTokenAndInit();
+    _startClock();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startClock() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _currentTime = DateFormat('HH:mm:ss').format(DateTime.now());
+      });
+    });
   }
 
   Future<void> _loadTokenAndInit() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     _userToken = prefs.getString('token') ?? '';
-
     if (_userToken.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +63,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
       setState(() => _isLoading = false);
       return;
     }
-
     await _initializeData();
   }
 
@@ -53,117 +70,72 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     setState(() => _isLoading = true);
     await _getCurrentLocation();
     await _fetchTodayAttendanceStatus();
-    await _fetchAttendanceHistory();
+      print("Absen hari ini: ${_todayAbsenData}");
+
     if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _getCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) throw 'Layanan lokasi dimatikan.';
+      if (!serviceEnabled) throw 'Layanan lokasi tidak aktif';
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) throw 'Izin lokasi ditolak.';
+        if (permission == LocationPermission.denied) throw 'Izin lokasi ditolak';
       }
-
       if (permission == LocationPermission.deniedForever) {
-        throw 'Izin lokasi ditolak permanen.';
+        throw 'Izin lokasi ditolak permanen';
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      final place = placemarks.first;
 
       if (mounted) {
         setState(() {
           _currentPosition = LatLng(position.latitude, position.longitude);
-          _currentAddress = "Lat: ${position.latitude}, Lng: ${position.longitude}";
+          _currentAddress = "${place.street}, ${place.locality}";
         });
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal dapat lokasi: $e')),
-        );
-      }
+      if (mounted) setState(() => _currentAddress = 'Gagal dapat lokasi: $e');
     }
   }
 
   Future<void> _fetchTodayAttendanceStatus() async {
     try {
       final absen = await AbsenService.getAbsenToday(_userToken);
+      print("Absen hari ini: ${_todayAbsenData}");
       if (mounted) setState(() => _todayAbsenData = absen);
     } catch (e) {
-      if (mounted) {
-        setState(() => _todayAbsenData = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ambil status kehadiran: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _fetchAttendanceHistory() async {
-    try {
-      final history = await AbsenService.getRiwayatAbsen(_userToken);
-      if (mounted) setState(() => _attendanceHistory = history);
-    } catch (e) {
-      if (mounted) {
-        setState(() => _attendanceHistory = []);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal ambil riwayat kehadiran: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.camera);
-    if (picked != null) {
-      if (mounted) {
-        setState(() => _pickedImage = File(picked.path));
-      }
+      if (mounted) setState(() => _todayAbsenData = null);
     }
   }
 
   Future<void> _handleCheckIn() async {
     if (_currentPosition == null) return;
-    if (_takePhoto && _pickedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon ambil foto terlebih dahulu.')),
-      );
-      return;
-    }
-
     try {
       setState(() => _isLoading = true);
-
-      final absen = AbsenModel(
-        id: 0,
-        userId: 0,
-        status: 'hadir',
+      final absen = AbsenRequest(
+        status: 'masuk',
         checkInLat: _currentPosition!.latitude,
         checkInLng: _currentPosition!.longitude,
         checkInAddress: _currentAddress,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        attendanceDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        checkIn: DateFormat('HH:mm').format(DateTime.now()),
       );
-
-      await AbsenService.checkIn(absen, _userToken, imageFile: _pickedImage);
-
+      await AbsenService.checkIn(absen, _userToken);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Check-in berhasil')),
         );
-        _pickedImage = null;
         await _initializeData();
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Check-in gagal: $e')),
+        SnackBar(content: Text('Gagal check-in: $e')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -171,22 +143,17 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
   }
 
   Future<void> _handleCheckOut() async {
-    if (_currentPosition == null || _todayAbsenData == null) return;
-
     try {
       setState(() => _isLoading = true);
-      final absen = AbsenModel(
-        id: _todayAbsenData!.id,
-        userId: _todayAbsenData!.userId,
-        status: 'hadir',
-        checkOutLat: _currentPosition!.latitude,
-        checkOutLng: _currentPosition!.longitude,
+      final absen = AbsenCoRequest(
+        checkOutLat: _currentPosition!.latitude.toString(),
+        checkOutLng: _currentPosition!.longitude.toString(),
         checkOutAddress: _currentAddress,
-        createdAt: _todayAbsenData!.createdAt,
-        updatedAt: DateTime.now(),
+        attendanceDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        checkOut: DateFormat('HH:mm').format(DateTime.now()),
+        checkOutLocation: "${_currentPosition!.latitude}, ${_currentPosition!.longitude}",
       );
       await AbsenService.checkOut(absen, _userToken);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Check-out berhasil')),
@@ -195,52 +162,21 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Check-out gagal: $e')),
+        SnackBar(content: Text('Gagal check-out: $e')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _showIzinDialog() async {
-    String alasan = '';
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Ajukan Izin/Sakit'),
-        content: TextField(
-          onChanged: (val) => alasan = val,
-          decoration: const InputDecoration(hintText: 'Tulis alasan izin/sakit'),
-          maxLines: 3,
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              if (alasan.isNotEmpty) {
-                await _handleAjukanIzin(alasan);
-              }
-            },
-            child: const Text('Kirim'),
-          )
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleAjukanIzin(String alasan) async {
+  Future<void> _handleAjukanIzin() async {
     try {
       setState(() => _isLoading = true);
-      final absen = AbsenModel(
-        id: 0,
-        userId: 0,
-        status: 'izin',
-        alasanIzin: alasan,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+      final izin = AjukanIzinRequest(
+        date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        alasanIzin: 'Sakit',
       );
-      await AbsenService.ajukanIzin(absen, _userToken);
+      await AbsenService.ajukanIzin(izin, _userToken);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Izin berhasil diajukan')),
@@ -258,151 +194,106 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isHadir = _todayAbsenData?.status == 'hadir';
-    final isSudahCheckIn = isHadir && _todayAbsenData?.checkIn != null;
-    final isBelumCheckOut = _todayAbsenData?.checkOut == null;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kirim Absen'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-      ),
-      backgroundColor: Colors.white,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildMap(),
-                  const SizedBox(height: 16),
-                  _buildStatus(),
-                  const SizedBox(height: 16),
-                  if (_takePhoto) _buildPhotoPreview(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Switch(
-                        value: _takePhoto,
-                        onChanged: (val) => setState(() {
-                          _takePhoto = val;
-                          if (!val) _pickedImage = null;
-                        }),
-                      ),
-                      const Text('Ambil Foto'),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (_todayAbsenData == null || _todayAbsenData?.status == null)
-                    _buildActionButton('Check In', _handleCheckIn, isPrimary: true),
-                  if (isSudahCheckIn && isBelumCheckOut)
-                    _buildActionButton('Check Out', _handleCheckOut),
-                  if (_todayAbsenData == null || (_todayAbsenData!.status != 'hadir' && _todayAbsenData!.status != 'izin'))
-                    _buildActionButton('Ajukan Izin/Sakit', _showIzinDialog, color: Colors.orange),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _buildMap() {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all()),
-      child: _currentPosition == null
-          ? const Center(child: Text('Lokasi tidak tersedia'))
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(target: _currentPosition!, zoom: 15),
-              onMapCreated: (controller) {
-                _mapController = controller;
-                _mapController?.animateCamera(
-                  CameraUpdate.newLatLngZoom(_currentPosition!, 15),
-                );
-              },
-              markers: {
-                Marker(markerId: const MarkerId('posisi'), position: _currentPosition!),
-              },
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
-            ),
-    );
-  }
-
-  Widget _buildStatus() {
-    final checkInTime = _todayAbsenData?.checkIn != null
-        ? DateFormat('HH:mm').format(_todayAbsenData!.checkIn!)
-        : '-';
-    final checkOutTime = _todayAbsenData?.checkOut != null
-        ? DateFormat('HH:mm').format(_todayAbsenData!.checkOut!)
-        : '-';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Status: ${_todayAbsenData?.status ?? 'Belum Absen'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text('Alamat: $_currentAddress'),
-        if (_todayAbsenData != null && _todayAbsenData!.status == 'hadir') ...[
-          Text('Check-in: $checkInTime'),
-          Text('Check-out: $checkOutTime'),
-        ]
-      ],
-    );
-  }
-
-  Widget _buildPhotoPreview() {
-    return _pickedImage == null
-        ? ElevatedButton.icon(
-            onPressed: _pickImage,
-            icon: const Icon(Icons.camera),
-            label: const Text('Ambil Foto'),
-          )
-        : Stack(
-            children: [
-              Container(
-                height: 150,
-                width: 150,
-                decoration: BoxDecoration(
-                  border: Border.all(),
-                  image: DecorationImage(
-                    image: FileImage(_pickedImage!),
-                    fit: BoxFit.cover,
+          : Stack(
+              children: [
+                Positioned.fill(
+                  child: _currentPosition == null
+                      ? const Center(child: Text('Lokasi tidak tersedia'))
+                      : GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: _currentPosition!,
+                            zoom: 17,
+                          ),
+                          markers: {
+                            Marker(
+                              markerId: const MarkerId('lokasi'),
+                              position: _currentPosition!,
+                            ),
+                          },
+                          onMapCreated: (controller) => _mapController = controller,
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: false,
+                        ),
+                ),
+                Positioned(
+                  top: 50,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Text(
+                      _currentTime,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                right: 0,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () => setState(() => _pickedImage = null),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text("📍 Lokasi Anda", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const SizedBox(height: 6),
+                        Text(_currentAddress, style: const TextStyle(fontSize: 14)),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Status: ${_todayAbsenData?.status =="masuk"?"Sudah Check In" :'Belum Check In'?? 'Belum Check In'}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _todayAbsenData?.checkInTime == null ? _handleCheckIn : null,
+                          icon: const Icon(Icons.login),
+                          label: const Text("Check In"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(45),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: _todayAbsenData?.checkOutTime == null &&
+                                  _todayAbsenData?.checkInTime != null
+                              ? _handleCheckOut
+                              : null,
+                          icon: const Icon(Icons.logout),
+                          label: const Text("Check Out"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(45),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: _handleAjukanIzin,
+                          icon: const Icon(Icons.event_busy),
+                          label: const Text("Ajukan Izin"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(45),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              )
-            ],
-          );
-  }
-
-  Widget _buildActionButton(String label, VoidCallback onPressed,
-      {bool isPrimary = false, Color? color}) {
-    return SizedBox(
-      width: double.infinity,
-      child: isPrimary
-          ? ElevatedButton(
-              onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: color ?? const Color(0xFF213F85),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(label),
-            )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: color ?? const Color(0xFF213F85),
-                side: BorderSide(color: color ?? const Color(0xFF213F85)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(label),
+              ],
             ),
     );
   }

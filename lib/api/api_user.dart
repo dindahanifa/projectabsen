@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
+import 'package:projectabsen/model/lupaPassword_request.dart';
 import 'package:projectabsen/model/user_model.dart';
 import 'package:projectabsen/model/profil_model.dart';
 import 'package:projectabsen/model/registererror_model.dart';
@@ -152,7 +153,6 @@ class UserService {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
       final fileExtension = path.extension(imageFile.path).toLowerCase().replaceAll('.', '');
-
       final body = jsonEncode({
         'profile_photo': base64Image,
         'file_extension': fileExtension,
@@ -183,4 +183,25 @@ class UserService {
       rethrow;
     }
   }
+
+  Future<LupaPasswordResponse> forgotPassword(String email) async {
+  final response = await http.post(
+    Uri.parse(Endpoint.lupaPassword),
+    headers: {"Accept": "application/json"},
+    body: {"email": email},
+  );
+
+  print("Status: ${response.statusCode}");
+  print("Body: ${response.body}");
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final jsonResponse = jsonDecode(response.body);
+    return LupaPasswordResponse.fromJson(jsonResponse);
+  } else if (response.statusCode == 422) {
+    final jsonResponse = jsonDecode(response.body);
+    throw Exception(jsonResponse['message'] ?? "Permintaan tidak valid");
+  } else {
+    throw Exception("Gagal kirim permintaan reset password: ${response.statusCode}");
+  }
+}
 }

@@ -80,6 +80,7 @@ flutter:
   - assets/image/card.png
   # videos
   - assets/videos/welcome.mp4
+  - assets/videos/splash.mp4
 
   fonts:
     - family: Inter

@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:projectabsen/api/api_user.dart';
+import 'package:projectabsen/utils/shared_prefences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class EditProfilScreen extends StatefulWidget {
   const EditProfilScreen({super.key});
@@ -46,25 +48,46 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         nameController.text = user['name'] ?? '';
         emailController.text = user['email'] ?? '';
         phoneController.text = user['phone'] ?? '';
-        imageUrl = user['photo'];
-        batchId = user['batch_id']?.toString();
-        mulaiBatch = user['batch_start'];
-        akhirBatch = user['batch_end'];
-        namaTraining = user['training_name'];
+        imageUrl = user['profile_photo'];
+        batchId = user['batch_ke']?.toString();
+        mulaiBatch = user["batch"]['start_date'];
+        akhirBatch = user["batch"]['end_date'];
+        namaTraining = user['training_title'];
       });
+
+      print("🗓 mulaiBatch: $mulaiBatch");
+      print("🗓 akhirBatch: $akhirBatch");
     } catch (e) {
       print("❌ Gagal mengambil data profil: $e");
+    }
+  }
+
+  String formatTanggal(String? tanggal) {
+    print("🔍 Cek format tanggal: $tanggal");
+    if (tanggal == null || tanggal.isEmpty) return '-';
+    try {
+      final parsedDate = DateTime.parse(tanggal);
+      return DateFormat('dd MMMM yyyy', 'id_ID').format(parsedDate);
+    } catch (e) {
+      try {
+        final parsedAlt = DateFormat('dd-MM-yyyy').parse(tanggal);
+        return DateFormat('dd MMMM yyyy', 'id_ID').format(parsedAlt);
+      } catch (e) {
+        print("❌ Gagal parse tanggal '$tanggal': $e");
+        return '-';
+      }
     }
   }
 
   Future<void> _updatePhoto(File imageFile) async {
     try {
       final response = await userService.updatePhotoProfile(imageFile);
+      print('📸 Respons dari updatePhotoProfile: $response');
       if (response != null && response.containsKey('data')) {
         final newPhotoUrl = response['data']['profile_photo'];
+
         if (newPhotoUrl != null && newPhotoUrl.isNotEmpty) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('photo_override', newPhotoUrl);
+          await PreferenceHandler.saveProfilePhoto(newPhotoUrl);
 
           setState(() {
             imageUrl = newPhotoUrl;
@@ -95,14 +118,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         title: const Text('Konfirmasi'),
         content: const Text('Apakah Anda yakin ingin mengubah profil dan foto?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Ya'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ya')),
         ],
       ),
     );
@@ -111,7 +128,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
 
     try {
       await userService.updateProfile(nameController.text.trim());
-
       if (_imageFile != null) {
         await _updatePhoto(_imageFile!);
       }
@@ -133,19 +149,16 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xff08325b),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xff08325b),
         elevation: 0,
-        title: const Text('Informasi Diri', style: TextStyle(color: Colors.black)),
-        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text('Informasi Diri', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           TextButton(
             onPressed: _simpanPerubahan,
-            child: const Text(
-              'Ubah Profil',
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
-            ),
+            child: const Text('Ubah Profil', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -166,7 +179,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                         onTap: () async {
                           if (_isPicking) return;
                           _isPicking = true;
-
                           try {
                             final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
                             if (pickedFile != null) {
@@ -199,10 +211,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                             ),
                             Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                              ),
+                              decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
                               child: const Icon(Icons.edit, color: Colors.white, size: 18),
                             ),
                           ],
@@ -229,10 +238,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
+  Widget _buildSection({required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
       color: Colors.white,
@@ -243,10 +249,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
             const SizedBox(height: 12),
             ...children,
           ],
@@ -255,18 +258,12 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    bool required = false,
-  }) {
+  Widget _buildTextField({required String label, required TextEditingController controller, bool required = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
-        validator: required
-            ? (value) => value == null || value.trim().isEmpty ? '$label wajib diisi' : null
-            : null,
+        validator: required ? (value) => value == null || value.trim().isEmpty ? '$label wajib diisi' : null : null,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.grey),
@@ -295,9 +292,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
             const SizedBox(height: 12),
             _buildInfoRow(Icons.groups, 'Batch', batchId ?? '-'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today, 'Mulai Batch', mulaiBatch ?? '-'),
+            _buildInfoRow(Icons.calendar_today, 'Mulai Batch', formatTanggal(mulaiBatch)),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today_outlined, 'Akhir Batch', akhirBatch ?? '-'),
+            _buildInfoRow(Icons.calendar_today_outlined, 'Akhir Batch', formatTanggal(akhirBatch)),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.school, 'Training', namaTraining ?? '-'),
           ],

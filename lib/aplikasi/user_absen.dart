@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:projectabsen/aplikasi/home_absen.dart';
+import 'package:projectabsen/aplikasi/lupa_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:projectabsen/api/api_user.dart';
 import 'package:projectabsen/utils/shared_prefences.dart' as PreferenceHandler;
@@ -369,7 +370,7 @@ print(registerRequest["message"]);
                         onTap: () => setState(() => isSignIn = true),
                         child: _buildTapButton('SIGN IN', isSignIn),
                       ),
-                      SizedBox(width: 20),
+                      SizedBox(width: 10),
                       GestureDetector(
                         onTap: () => setState(() => isSignIn = false),
                         child: _buildTapButton('SIGN UP', !isSignIn),
@@ -381,7 +382,13 @@ print(registerRequest["message"]);
                   SizedBox(height: 30),
                   if (isSignIn)
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context, 
+                        MaterialPageRoute(builder: (context)=> ForgotPasswordScreen()), 
+                        (route)=> false
+                      );
+                      },
                       child: Text(
                         'Forget your password?',
                         style: TextStyle(color: Colors.deepOrange),
@@ -398,7 +405,7 @@ print(registerRequest["message"]);
 
   Widget _buildTapButton(String text, bool isActive) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 25, vertical: 5),
       decoration: BoxDecoration(
         color: isActive ? Colors.white.withOpacity(0.2) : Colors.transparent,
         borderRadius: BorderRadius.circular(25),

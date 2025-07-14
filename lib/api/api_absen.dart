@@ -1,67 +1,45 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
+import 'package:projectabsen/model/absen_co_request.dart';
 import 'package:projectabsen/model/absen_model.dart';
+import 'package:projectabsen/model/absen_request.dart';
+import 'package:projectabsen/model/absen_today.dart';
+import 'package:projectabsen/model/ajukanIzin_request.dart';
+import 'package:projectabsen/model/history_response.dart';
 import 'package:projectabsen/utils/endpoint.dart';
+import 'package:intl/intl.dart';
 
 class AbsenService {
-  static Future<AbsenModel> checkIn(
-    AbsenModel data,
-    String token, {
-    File? imageFile,
-  }) async {
+  // ✅ Check In
+  static Future<AbsenModel> checkIn(AbsenRequest data, String token) async {
     final url = Uri.parse(Endpoint.checkIn);
+      final bodyData = jsonEncode(data.toJson());
 
-    if (imageFile == null) {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(data.toJson()),
-      );
+  print("URL: $url");
+  print("Body: $bodyData");
+  print("Token: $token");
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data.toJson()),
+    );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonResponse = jsonDecode(response.body);
-        return AbsenResponse.fromJson(jsonResponse).data!;
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        throw Exception('Gagal Check In: ${errorResponse['message'] ?? response.body}');
-      }
+      print('CheckIn Response: ${response.statusCode}');
+  print('CheckIn Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      return AbsenResponse.fromJson(jsonResponse).data!;
     } else {
-      var request = http.MultipartRequest('POST', url)
-        ..headers['Authorization'] = 'Bearer $token'
-        ..fields['status'] = data.status
-        ..fields['check_in_lat'] = data.checkInLat.toString()
-        ..fields['check_in_lng'] = data.checkInLng.toString()
-        ..fields['check_in_address'] = data.checkInAddress ?? ''
-        ..fields['created_at'] = data.createdAt.toIso8601String()
-        ..fields['updated_at'] = data.updatedAt.toIso8601String();
-
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'foto',
-          imageFile.path,
-          filename: basename(imageFile.path),
-        ),
-      );
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonResponse = jsonDecode(response.body);
-        return AbsenResponse.fromJson(jsonResponse).data!;
-      } else {
-        final errorResponse = jsonDecode(response.body);
-        throw Exception('Gagal Check In (foto): ${errorResponse['message'] ?? response.body}');
-      }
+      throw Exception(_parseError(response));
     }
   }
 
-  static Future<AbsenModel> checkOut(AbsenModel data, String token) async {
+  // ✅ Check Out
+  static Future<AbsenModel> checkOut(AbsenCoRequest data, String token) async {
     final url = Uri.parse(Endpoint.checkOut);
     final response = await http.post(
       url,
@@ -69,20 +47,63 @@ class AbsenService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: json.encode(data.toJson()),
+      body: jsonEncode(data.toJson()),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonResponse = jsonDecode(response.body);
       return AbsenResponse.fromJson(jsonResponse).data!;
     } else {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal Check Out: ${errorResponse['message'] ?? response.body}');
+      throw Exception(_parseError(response));
     }
   }
 
-  static Future<AbsenModel?> getAbsenToday(String token) async {
-    final url = Uri.parse(Endpoint.absenToday);
+  // ✅ Ajukan Izin
+  static Future<AbsenModel> ajukanIzin(AjukanIzinRequest data, String token) async {
+    final url = Uri.parse(Endpoint.ajukanIzin);
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data.toJson()),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      return AbsenResponse.fromJson(jsonResponse).data!;
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  // ✅ Ambil Absen Hari Ini
+  static Future<AbsenToday?> getAbsenToday(String token) async {
+final date = 
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final url = Uri.parse("${Endpoint.absenToday}?attendance_date=$date");
+    final response = await http.get(url, headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    });
+print("URL: $url");
+print("Response Status: ${response.statusCode}");
+print("Response Body: ${response.body}");
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      return AbsenToday.fromJson(jsonResponse["data"]);
+    } else if (response.statusCode == 404) {
+      return null;
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  // ✅ Statistik Absensi
+  static Future<StatistikAbsen> getStatistik(String token) async {
+    final url = Uri.parse(Endpoint.statistik);
     final response = await http.get(url, headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer $token',
@@ -90,16 +111,19 @@ class AbsenService {
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
-      return AbsenModel.fromJson(jsonResponse['data']);
-    } else if (response.statusCode == 404) {
-      return null;
+      final statistikResponse = StatistikResponse.fromJson(jsonResponse);
+
+      if (statistikResponse.data != null) {
+        return statistikResponse.data!;
+      } else {
+        throw Exception("Data statistik kosong");
+      }
     } else {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal mengambil absen hari ini: ${errorResponse['message'] ?? response.body}');
+      throw Exception(_parseError(response));
     }
   }
 
-  static Future<List<AbsenModel>> getRiwayatAbsen(
+  static Future<List<HistoryData>> getRiwayatAbsen(
     String token, {
     String? startDate,
     String? endDate,
@@ -116,14 +140,13 @@ class AbsenService {
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
-      final List list = jsonResponse['data'];
-      return list.map((e) => AbsenModel.fromJson(e)).toList();
+      return HistoryResponse.fromJson(jsonResponse).data ?? [];
     } else {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal mengambil riwayat absen: ${errorResponse['message'] ?? response.body}');
+      throw Exception(_parseError(response));
     }
   }
 
+  // ✅ Hapus Absen
   static Future<void> deleteAbsen(int id, String token) async {
     final url = Uri.parse('${Endpoint.deleteAbsen}/$id');
     final response = await http.delete(url, headers: {
@@ -132,44 +155,17 @@ class AbsenService {
     });
 
     if (response.statusCode != 200) {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal menghapus absen: ${errorResponse['message'] ?? response.body}');
+      throw Exception(_parseError(response));
     }
   }
 
-  static Future<StatistikKehadiran> getStatistik(String token) async {
-    final url = Uri.parse(Endpoint.statistik);
-    final response = await http.get(url, headers: {
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    });
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return StatistikKehadiran.fromJson(jsonResponse['data']);
-    } else {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal mengambil statistik kehadiran: ${errorResponse['message'] ?? response.body}');
-    }
-  }
-
-  static Future<AbsenModel> ajukanIzin(AbsenModel data, String token) async {
-    final url = Uri.parse(Endpoint.ajukanIzin);
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: json.encode(data.toJson()),
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      return AbsenResponse.fromJson(jsonResponse).data!;
-    } else {
-      final errorResponse = jsonDecode(response.body);
-      throw Exception('Gagal mengajukan izin: ${errorResponse['message'] ?? response.body}');
+  // ✅ Parsing Error
+  static String _parseError(http.Response response) {
+    try {
+      final jsonError = jsonDecode(response.body);
+      return jsonError['message'] ?? 'Terjadi kesalahan';
+    } catch (_) {
+      return response.body;
     }
   }
 }
