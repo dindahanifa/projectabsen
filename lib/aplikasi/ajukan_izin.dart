@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:projectabsen/api/api_absen.dart';
-import 'package:projectabsen/model/ajukanIzin_request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:projectabsen/model/ajukanIzin_request.dart';
+import 'package:projectabsen/api/api_absen.dart';
 
 class AjukanIzinScreen extends StatefulWidget {
   const AjukanIzinScreen({super.key});
@@ -50,7 +50,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Izin berhasil diajukan')),
         );
-        Navigator.pop(context); // Kembali ke halaman sebelumnya
+        Navigator.pop(context);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +65,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2024),
+      firstDate: DateTime(2023),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
 

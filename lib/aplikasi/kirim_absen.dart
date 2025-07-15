@@ -1,17 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:projectabsen/api/api_absen.dart';
-import 'package:projectabsen/model/absen_co_request.dart';
-import 'package:projectabsen/model/absen_model.dart';
-import 'package:projectabsen/model/absen_request.dart';
-import 'package:projectabsen/model/absen_today.dart';
-import 'package:projectabsen/model/ajukanIzin_request.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:projectabsen/aplikasi/ajukan_izin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:projectabsen/api/api_absen.dart';
+import 'package:projectabsen/model/absen_request.dart';
+import 'package:projectabsen/model/absen_co_request.dart';
+import 'package:projectabsen/model/absen_today.dart';
+import 'package:projectabsen/aplikasi/ajukan_izin.dart';
 
 class KirimAbsenScreen extends StatefulWidget {
   const KirimAbsenScreen({super.key});
@@ -70,8 +70,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     setState(() => _isLoading = true);
     await _getCurrentLocation();
     await _fetchTodayAttendanceStatus();
-      print("Absen hari ini: ${_todayAbsenData}");
-
     if (mounted) setState(() => _isLoading = false);
   }
 
@@ -107,7 +105,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
   Future<void> _fetchTodayAttendanceStatus() async {
     try {
       final absen = await AbsenService.getAbsenToday(_userToken);
-      print("Absen hari ini: ${_todayAbsenData}");
       if (mounted) setState(() => _todayAbsenData = absen);
     } catch (e) {
       if (mounted) setState(() => _todayAbsenData = null);
@@ -143,6 +140,7 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
   }
 
   Future<void> _handleCheckOut() async {
+    if (_currentPosition == null) return;
     try {
       setState(() => _isLoading = true);
       final absen = AbsenCoRequest(
@@ -163,29 +161,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal check-out: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _handleAjukanIzin() async {
-    try {
-      setState(() => _isLoading = true);
-      final izin = AjukanIzinRequest(
-        date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        alasanIzin: 'Sakit',
-      );
-      await AbsenService.ajukanIzin(izin, _userToken);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Izin berhasil diajukan')),
-        );
-        await _initializeData();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal ajukan izin: $e')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -250,7 +225,7 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                         Text(_currentAddress, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: 12),
                         Text(
-                          "Status: ${_todayAbsenData?.status =="masuk"?"Sudah Check In" :'Belum Check In'?? 'Belum Check In'}",
+                          "Status: ${_todayAbsenData?.status == "masuk" ? "Sudah Check In" : "Belum Check In"}",
                           style: const TextStyle(fontSize: 14),
                         ),
                         const SizedBox(height: 16),
@@ -280,7 +255,12 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
-                          onPressed: _handleAjukanIzin,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AjukanIzinScreen()),
+                            );
+                          },
                           icon: const Icon(Icons.event_busy),
                           label: const Text("Ajukan Izin"),
                           style: ElevatedButton.styleFrom(
