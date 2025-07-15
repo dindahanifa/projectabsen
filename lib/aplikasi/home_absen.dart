@@ -102,6 +102,7 @@ class _HomeContentState extends State<HomeContent> {
     try {
       final data = await userService.getProfile();
       final user = data['data'] ?? data;
+      print('User data loaded: $user');
       setState(() {
         _userData = user;
       });
@@ -116,6 +117,7 @@ class _HomeContentState extends State<HomeContent> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
       final result = await AbsenService.getRiwayatAbsen(token);
+      result.sort((a, b) => b.attendanceDate!.compareTo(a.attendanceDate!));
       setState(() {
         _riwayat = result;
         _isLoading = false;
@@ -135,12 +137,9 @@ class _HomeContentState extends State<HomeContent> {
         targetLat,
         targetLng,
       );
-
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
-
       Placemark place = placemarks.first;
-
       setState(() {
         distanceFromPlace = distanceInMeters;
         currentAddress =
@@ -173,11 +172,12 @@ class _HomeContentState extends State<HomeContent> {
     if (_userData == null || _isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+    print('User data: $_userData');
 
     final user = _userData!;
     final name = user['name']?.toString() ?? 'Pengguna';
     final trainingName = user['training_title'] ?? 'Tidak ada pelatihan';
-    final imageUrl = user['profile_photo'];
+    final imageUrl = user['profile_photo_url'] ?? '';
     final imageUrlWithTimestamp = imageUrl != null && imageUrl.isNotEmpty
         ? "$imageUrl?ts=${DateTime.now().millisecondsSinceEpoch}"
         : null;
@@ -258,12 +258,11 @@ class _HomeContentState extends State<HomeContent> {
             const SizedBox(height: 8),
             if (_riwayat.isNotEmpty)
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(16),
                   color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +275,7 @@ class _HomeContentState extends State<HomeContent> {
                     ),
                     const SizedBox(height: 8),
                     _row('Check In', _riwayat.first.checkInTime ?? '-'),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     _row('Check Out', _riwayat.first.checkOutTime ?? '-'),
                   ],
                 ),

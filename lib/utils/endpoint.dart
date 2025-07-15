@@ -15,4 +15,5 @@ class Endpoint {
   static const String ajukanIzin = "$baseUrlApi/izin";
   static const String updatePhotoProfile = "$baseUrlApi/profile/photo";
   static const String lupaPassword = "$baseUrlApi/forgot-password";
+  static const String resetPassword = "$baseUrlApi/reset-password";
 }  

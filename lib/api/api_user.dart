@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:projectabsen/model/lupaPassword_request.dart';
+import 'package:projectabsen/model/reset_password.dart';
 import 'package:projectabsen/model/user_model.dart';
 import 'package:projectabsen/model/profil_model.dart';
 import 'package:projectabsen/model/registererror_model.dart';
@@ -194,6 +195,8 @@ class UserService {
   print("Status: ${response.statusCode}");
   print("Body: ${response.body}");
 
+  final jsonResponse = jsonDecode(response.body);
+
   if (response.statusCode == 200 || response.statusCode == 201) {
     final jsonResponse = jsonDecode(response.body);
     return LupaPasswordResponse.fromJson(jsonResponse);
@@ -204,4 +207,20 @@ class UserService {
     throw Exception("Gagal kirim permintaan reset password: ${response.statusCode}");
   }
 }
+
+  Future<ResetPasswordResponse> resetPassword(ResetPasswordRequest request) async {
+    final response = await http.post(
+      Uri.parse(Endpoint.resetPassword),
+      headers: {"Accept": "application/json"},
+      body: request.toJson(),
+    );
+
+    final jsonResponse = jsonDecode(response.body);
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return ResetPasswordResponse.fromJson(jsonResponse);
+    } else {
+      throw Exception(jsonResponse['message'] ?? "Gagal reset password");
+    }
+  }
 }

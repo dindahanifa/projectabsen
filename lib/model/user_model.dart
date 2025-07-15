@@ -59,6 +59,7 @@ class User {
   final int? trainingId;
   final String? jenisKelamin;
   final dynamic profilePhoto;
+  final dynamic profilePhotoUrl;
   final DateTime? updatedAt;
   final DateTime? createdAt;
   final int? id;
@@ -72,6 +73,7 @@ class User {
     this.trainingId,
     this.jenisKelamin,
     this.profilePhoto,
+    this.profilePhotoUrl,
     this.updatedAt,
     this.createdAt,
     this.id,
@@ -86,6 +88,7 @@ class User {
         trainingId: json["training_id"] == null ? null : int.tryParse(json["training_id"].toString()),
         jenisKelamin: json["jenis_kelamin"],
         profilePhoto: json["profile_photo"],
+        profilePhotoUrl: json["profile_photo_url"],
         updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
         createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
         id: json["id"],

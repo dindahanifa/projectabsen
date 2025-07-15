@@ -37,6 +37,7 @@ class UserProfile {
   final Training training;
   final String jenisKelamin;
   final String? profilePhoto;
+  final String? profilePhotoUrl;
 
   UserProfile({
     required this.id,
@@ -48,6 +49,7 @@ class UserProfile {
     required this.training,
     required this.jenisKelamin,
     this.profilePhoto,
+    this.profilePhotoUrl,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
@@ -60,6 +62,7 @@ class UserProfile {
         training: Training.fromJson(json["training"]),
         jenisKelamin: json["jenis_kelamin"],
         profilePhoto: json["profile_photo"],
+        profilePhotoUrl: json["profile_photo_url"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -72,6 +75,7 @@ class UserProfile {
         "training": training.toJson(),
         "jenis_kelamin": jenisKelamin,
         "profile_photo": profilePhoto,
+        "profile_photo_url": profilePhotoUrl,
       };
 }
 

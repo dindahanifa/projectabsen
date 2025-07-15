@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:projectabsen/aplikasi/user_absen.dart';
 import 'package:projectabsen/aplikasi/splash_screen.dart';
 import 'package:projectabsen/aplikasi/welcome_screen.dart';
-
-void main() {
+import 'package:intl/date_symbol_data_local.dart';
+import '';
+void main()async {
+  await initializeDateFormatting('id_ID', null);
+ 
   runApp(const MyApp());
 }
 

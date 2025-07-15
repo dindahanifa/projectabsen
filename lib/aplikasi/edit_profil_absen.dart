@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:projectabsen/api/api_user.dart';
 import 'package:projectabsen/utils/shared_prefences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
+import 'package:projectabsen/aplikasi/reset_password_profil.dart';
+import 'package:projectabsen/aplikasi/user_absen.dart';
 
 class EditProfilScreen extends StatefulWidget {
   const EditProfilScreen({super.key});
@@ -19,7 +21,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
 
   File? _imageFile;
   String? imageUrl;
@@ -42,39 +43,32 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     try {
       final data = await userService.getProfile();
       final user = data['data'];
-      print("📦 Data dari API getProfile(): $user");
 
       setState(() {
         nameController.text = user['name'] ?? '';
         emailController.text = user['email'] ?? '';
-        phoneController.text = user['phone'] ?? '';
-        imageUrl = user['profile_photo'];
+        imageUrl = user['profile_photo_url'];
         batchId = user['batch_ke']?.toString();
-        mulaiBatch = user["batch"]['start_date'];
-        akhirBatch = user["batch"]['end_date'];
+        mulaiBatch = user['batch']?['start_date'];
+        akhirBatch = user['batch']?['end_date'];
         namaTraining = user['training_title'];
       });
-
-      print("🗓 mulaiBatch: $mulaiBatch");
-      print("🗓 akhirBatch: $akhirBatch");
     } catch (e) {
       print("❌ Gagal mengambil data profil: $e");
     }
   }
 
   String formatTanggal(String? tanggal) {
-    print("🔍 Cek format tanggal: $tanggal");
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
       final parsedDate = DateTime.parse(tanggal);
       return DateFormat('dd MMMM yyyy', 'id_ID').format(parsedDate);
     } catch (e) {
       try {
-        final parsedAlt = DateFormat('dd-MM-yyyy').parse(tanggal);
+        final parsedAlt = DateFormat('dd-MM-yyyy').parse(tanggal.split('T').first);
         return DateFormat('dd MMMM yyyy', 'id_ID').format(parsedAlt);
       } catch (e) {
-        print("❌ Gagal parse tanggal '$tanggal': $e");
-        return '-';
+        return '--';
       }
     }
   }
@@ -82,25 +76,17 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   Future<void> _updatePhoto(File imageFile) async {
     try {
       final response = await userService.updatePhotoProfile(imageFile);
-      print('📸 Respons dari updatePhotoProfile: $response');
       if (response != null && response.containsKey('data')) {
         final newPhotoUrl = response['data']['profile_photo'];
-
         if (newPhotoUrl != null && newPhotoUrl.isNotEmpty) {
           await PreferenceHandler.saveProfilePhoto(newPhotoUrl);
-
           setState(() {
             imageUrl = newPhotoUrl;
           });
-
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Foto profil berhasil diperbarui')),
           );
-        } else {
-          throw Exception('URL foto kosong atau tidak valid.');
         }
-      } else {
-        throw Exception('Respons dari server tidak sesuai.');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +124,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       );
       Navigator.pop(context, true);
     } catch (e) {
-      print('❌ Error saat update profile: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memperbarui profil: $e')),
@@ -188,8 +173,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                               });
                               await _updatePhoto(file);
                             }
-                          } catch (e) {
-                            print("❌ Error saat memilih gambar: $e");
                           } finally {
                             _isPicking = false;
                           }
@@ -223,10 +206,69 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                         children: [
                           _buildTextField(label: 'Username', controller: nameController, required: true),
                           _buildTextField(label: 'E-mail', controller: emailController, required: true),
-                          _buildTextField(label: 'No. Handphone', controller: phoneController),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ResetPasswordProfil()),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 1),
+                                  const Text(
+                                    'Reset Password',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       _buildTrainingInfo(),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text('Apakah Anda yakin ingin logout?'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Logout')),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.clear();
+
+                            if (!context.mounted) return;
+                            Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const UserScreen()),
+                            (route) => false,
+                      );
+                          }
+                        },
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Logout'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -292,7 +334,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
             const SizedBox(height: 12),
             _buildInfoRow(Icons.groups, 'Batch', batchId ?? '-'),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.calendar_today, 'Mulai Batch', formatTanggal(mulaiBatch)),
+            _buildInfoRow(Icons.calendar_today, 'Mulai Batch', mulaiBatch != null ? formatTanggal(mulaiBatch) : '-'),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.calendar_today_outlined, 'Akhir Batch', formatTanggal(akhirBatch)),
             const SizedBox(height: 8),

@@ -132,6 +132,7 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Riwayat Kehadiran', style: TextStyle(color: Colors.white, fontFamily: 'Intern'),),
         centerTitle: true,
         backgroundColor: const Color(0xff08325b),
