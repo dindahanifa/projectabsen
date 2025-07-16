@@ -30,6 +30,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     });
   }
 
+  // Kirim Izin
   Future<void> _submitIzin() async {
     if (_alasanController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,6 +62,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     }
   }
 
+  // Milih data
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -77,7 +79,17 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajukan Izin')),
+      appBar: AppBar(
+        title: const Text(
+          'Ajukan Izin',
+          style: TextStyle(color: Colors.white, fontFamily: 'Intern'),
+        ),
+        backgroundColor: const Color(0xFF0C1D40),
+        iconTheme: const IconThemeData(color: Colors.white), 
+      ),
+      backgroundColor: const Color(0xFF0C1D40),
+
+      // Tanggal izin, Alasan Izin, Kirim Izin
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
@@ -85,35 +97,49 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Tanggal Izin'),
+                  const Text('Tanggal Izin', style: TextStyle(color: Colors.white)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
-                        child: Text(DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(_selectedDate)),
+                        child: Text(
+                          DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(_selectedDate),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.calendar_today),
+                        icon: const Icon(Icons.calendar_today, color: Colors.white),
                         onPressed: _selectDate,
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text('Alasan Izin'),
+                  const Text('Alasan Izin', style: TextStyle(color: Colors.white)),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _alasanController,
                     maxLines: 3,
-                    decoration: const InputDecoration(
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
                       hintText: 'Tulis alasan izin...',
-                      border: OutlineInputBorder(),
+                      hintStyle: const TextStyle(color: Colors.white70),
+                      filled: true,
+                      fillColor: Colors.white10,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.white),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.amberAccent),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.send),
+                      icon: const Icon(Icons.send, color: Colors.white),
                       label: const Text('Kirim Izin'),
                       onPressed: _submitIzin,
                       style: ElevatedButton.styleFrom(

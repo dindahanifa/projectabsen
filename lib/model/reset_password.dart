@@ -1,11 +1,11 @@
 class ResetPasswordRequest {
   final String email;
-  final String otp;
+  final String? otp;
   final String password;
 
   ResetPasswordRequest({
     required this.email,
-    required this.otp,
+    this.otp,
     required this.password,
   });
 
@@ -27,13 +27,13 @@ class ResetPasswordRequest {
 }
 
 class ResetPasswordResponse {
-  final String message;
+  final String? message;
 
   ResetPasswordResponse({required this.message});
 
   factory ResetPasswordResponse.fromJson(Map<String, dynamic> json) {
     return ResetPasswordResponse(
-      message: json['message'],
+      message: json['message']?.toString(),
     );
   }
 

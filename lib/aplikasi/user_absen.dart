@@ -190,7 +190,7 @@ class _UserScreenState extends State<UserScreen> {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: Color(0xFF0B3558),
+                        color: Color(0xFF0C1D40),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -221,19 +221,19 @@ class _UserScreenState extends State<UserScreen> {
               children: [
                 SizedBox(height: 80),
                 if (isSignIn)
-                  Text("Welcome!", style: TextStyle(color: Colors.white, fontSize: 28, fontFamily: 'Intern' )),
+                  Text("Selamat Datang!", style: TextStyle(color: Colors.white, fontSize: 28, fontFamily: 'Intern' )),
                 SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     GestureDetector(
                       onTap: () => setState(() => isSignIn = true),
-                      child: _buildTapButton('SIGN IN', isSignIn),
+                      child: _buildTapButton('Masuk', isSignIn),
                     ),
                     SizedBox(width: 10),
                     GestureDetector(
                       onTap: () => setState(() => isSignIn = false),
-                      child: _buildTapButton('SIGN UP', !isSignIn),
+                      child: _buildTapButton('Daftar Akun', !isSignIn),
                     ),
                   ],
                 ),
@@ -242,7 +242,7 @@ class _UserScreenState extends State<UserScreen> {
                 if (isSignIn)
                   TextButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordScreen())),
-                    child: Text('Forget your password?', style: TextStyle(color: Colors.deepOrange)),
+                    child: Text('Lupa kata sandi?', style: TextStyle(color: Colors.deepOrange)),
                   ),
               ],
             ),
@@ -257,9 +257,9 @@ class _UserScreenState extends State<UserScreen> {
       children: [
         _buildInputField(Icons.person, 'Email', false, _emailController),
         SizedBox(height: 20),
-        _buildInputField(Icons.lock, 'Password', true, _passwordController),
+        _buildInputField(Icons.lock, 'Kata sandi', true, _passwordController),
         SizedBox(height: 40),
-        _buildAuthButton('SIGN IN', _handleSignIn),
+        _buildAuthButton('Masuk', _handleSignIn),
       ],
     );
   }
@@ -271,12 +271,12 @@ class _UserScreenState extends State<UserScreen> {
         SizedBox(height: 20),
         _buildInputField(Icons.email, 'Email', false, _emailController),
         SizedBox(height: 20),
-        _buildInputField(Icons.lock, 'Password', true, _passwordController),
+        _buildInputField(Icons.lock, 'Kata sandi', true, _passwordController),
         SizedBox(height: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Jenis Kelamin", style: TextStyle(color: Colors.white)),
+            Text("Jenis kelamin", style: TextStyle(color: Colors.white)),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -293,7 +293,7 @@ class _UserScreenState extends State<UserScreen> {
         SizedBox(height: 20),
         _buildDropdownField('Pilih Pelatihan', trainingList, selectedTrainingId, (val) => setState(() => selectedTrainingId = val)),
         SizedBox(height: 40),
-        _buildAuthButton('SIGN UP', _handleSignUp),
+        _buildAuthButton('Daftar akun', _handleSignUp),
       ],
     );
   }

@@ -10,6 +10,8 @@ class ForgotPasswordScreen extends StatefulWidget {
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
+// memanggil API untuk mengirim email verifikasi
+
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -52,9 +54,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff08325b),
+      backgroundColor: const Color(0xFF0C1D40),
       appBar: AppBar(
-        backgroundColor: const Color(0xff08325b),
+        backgroundColor: const Color(0xFF0C1D40),
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -70,13 +72,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          // Form untuk lupa password
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Forgotten password',
+                  'Lupa kata sandi',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -85,7 +88,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Please enter your email below then we will help you to recover your account.',
+                  'Silakan masukkan email Anda di bawah ini, lalu kami akan membantu Anda memulihkan akun Anda.',
                   style: TextStyle(fontSize: 15, color: Colors.white),
                 ),
                 const SizedBox(height: 24),
@@ -118,6 +121,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     return null;
                   },
                 ),
+                // Tombol untuk mengirim email verifikasi
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -125,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     onPressed: _loading ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFFFFA725),
+                      backgroundColor: const Color(0xFFFFCF50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -135,11 +139,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           )
                         : const Text(
-                            'Next',
+                            'Lanjutkan',
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
                 ),
+                // link untuk kembali ke halaman login
                 const SizedBox(height: 24),
                 Center(
                   child: GestureDetector(
@@ -149,11 +154,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     child: const Text.rich(
                       TextSpan(
-                        text: 'I have remember my password ',
+                        text: 'Saya ingat kata sandi saya ',
                         style: TextStyle(color: Colors.white),
                         children: [
                           TextSpan(
-                            text: 'Sign in',
+                            text: 'Masuk',
                             style: TextStyle(
                               color: Color(0xFF1E60FF),
                               fontWeight: FontWeight.bold,

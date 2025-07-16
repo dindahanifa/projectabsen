@@ -18,6 +18,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  
+  // untuk tombol buttom navigator
+
   int _selectedIndex = 0;
 
   void _onTabTapped(int index) {
@@ -35,15 +38,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _widgetOptions[_selectedIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const KirimAbsenScreen()),
-          );
-        },
-        backgroundColor: const Color(0xFFDDEB9D),
-        child: const Icon(Icons.add, size: 28),
+      floatingActionButton: SizedBox(
+        width: 60,
+        height: 60,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const KirimAbsenScreen()),
+            );
+          },
+          backgroundColor: const Color(0xFFDDEB9D),
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 28),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -72,6 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// Isi dalam halaman pertama
+
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
 
@@ -81,10 +91,10 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final UserService userService = UserService();
-  Map<String, dynamic>? _userData;
-  List<HistoryData> _riwayat = [];
+  Map<String, dynamic>? _userData; // mengambil data user
+  List<HistoryData> _riwayat = []; // mengambil data absen
   bool _isLoading = true;
-  double? distanceFromPlace;
+  double? distanceFromPlace; //untuk lokasi
   String? currentAddress;
 
   final targetLat = -0.933094;
@@ -98,11 +108,12 @@ class _HomeContentState extends State<HomeContent> {
     _calculateDistance();
   }
 
+  // mengambil data user untuk profil
+
   Future<void> _loadUserProfile() async {
     try {
       final data = await userService.getProfile();
       final user = data['data'] ?? data;
-      print('User data loaded: $user');
       setState(() {
         _userData = user;
       });
@@ -110,6 +121,8 @@ class _HomeContentState extends State<HomeContent> {
       debugPrint('Gagal load profil: $e');
     }
   }
+
+  // mengambil data absen
 
   Future<void> _fetchRiwayatAbsen() async {
     setState(() => _isLoading = true);
@@ -127,6 +140,8 @@ class _HomeContentState extends State<HomeContent> {
       debugPrint('Gagal ambil riwayat: $e');
     }
   }
+
+  // menghitung jarak lokasi
 
   Future<void> _calculateDistance() async {
     try {
@@ -150,6 +165,8 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
+  // Data waktu 
+
   String _formatDate(String dateString) {
     final date = DateTime.tryParse(dateString);
     if (date == null) return '-';
@@ -172,18 +189,19 @@ class _HomeContentState extends State<HomeContent> {
     if (_userData == null || _isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    print('User data: $_userData');
+
+    // data profil
 
     final user = _userData!;
     final name = user['name']?.toString() ?? 'Pengguna';
     final trainingName = user['training_title'] ?? 'Tidak ada pelatihan';
     final imageUrl = user['profile_photo_url'] ?? '';
-    final imageUrlWithTimestamp = imageUrl != null && imageUrl.isNotEmpty
+    final imageUrlWithTimestamp = imageUrl.isNotEmpty
         ? "$imageUrl?ts=${DateTime.now().millisecondsSinceEpoch}"
         : null;
 
     return Container(
-      color: const Color(0xff08325b),
+      color: const Color(0xFF0C1D40),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -235,6 +253,8 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
             ),
+
+            // jarak lokasi
             const SizedBox(height: 24),
             if (distanceFromPlace != null)
               Container(
@@ -253,35 +273,68 @@ class _HomeContentState extends State<HomeContent> {
                   ],
                 ),
               ),
+
+              // riwayat kehadiran
             const SizedBox(height: 24),
             const Text("Riwayat Kehadiran", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 8),
-            if (_riwayat.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade200),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _riwayat.first.attendanceDate != null
-                          ? _formatDate(_riwayat.first.attendanceDate!)
-                          : '-',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+            Builder(
+              builder: (_) {
+                final today = DateTime.now();
+                final todayStr = "${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+                final hariIni = _riwayat.firstWhere(
+                  (e) => e.attendanceDate == todayStr,
+                  orElse:() => HistoryData(
+                    id: 0, 
+                    attendanceDate: todayStr, 
+                    status: 'Belum Absen'),
+                );
+                return SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(height: 8),
-                    _row('Check In', _riwayat.first.checkInTime ?? '-'),
-                    const SizedBox(height: 4),
-                    _row('Check Out', _riwayat.first.checkOutTime ?? '-'),
-                  ],
-                ),
-              )
-            else
-              const Text("Belum ada riwayat absen", style: TextStyle(color: Colors.white)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatDate(hariIni.attendanceDate ?? todayStr),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        if (hariIni.alasanIzin != null && hariIni.alasanIzin!.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Status: Izin", style: TextStyle(color: Colors.red)),
+                              const SizedBox(height: 4),
+                              Text("Alasan: ${hariIni.alasanIzin!}"),
+                            ],
+                          )
+                        else if ((hariIni.checkInTime != null && hariIni.checkInTime != '-') ||
+                                 (hariIni.checkOutTime != null && hariIni.checkOutTime != '-'))
+                          Column(
+                            children: [
+                              _row('Check In', hariIni.checkInTime ?? '-'),
+                              const SizedBox(height: 4),
+                              _row('Check Out', hariIni.checkOutTime ?? '-'),
+                            ],
+                          )
+                        else
+                          const Text("Status: Belum Absen", style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Kalender
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(12),

@@ -12,6 +12,8 @@ import 'package:projectabsen/utils/endpoint.dart';
 import 'package:projectabsen/utils/shared_prefences.dart';
 
 class UserService {
+
+  // Daftar Akun
   Future<Map<String, dynamic>> registerUser({
     required String email,
     required String name,
@@ -47,6 +49,7 @@ class UserService {
     }
   }
 
+  // Login
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -90,6 +93,7 @@ class UserService {
     }
   }
 
+  // Ambil Profil
   Future<Map<String, dynamic>> getProfile() async {
     try {
       String? token = await PreferenceHandler.getToken();
@@ -121,6 +125,7 @@ class UserService {
     }
   }
 
+  // Perbarui Profil
   Future<Map<String, dynamic>> updateProfile(String name) async {
     String? token = await PreferenceHandler.getToken();
     if (token == null) throw Exception('Token tidak ditemukan');
@@ -146,6 +151,7 @@ class UserService {
     }
   }
 
+  // Perbarui foto profil
   Future<Map<String, dynamic>> updatePhotoProfile(File imageFile) async {
     String? token = await PreferenceHandler.getToken();
     if (token == null) throw Exception('Token tidak ditemukan');
@@ -185,6 +191,7 @@ class UserService {
     }
   }
 
+  // Lupa Password
   Future<LupaPasswordResponse> forgotPassword(String email) async {
   final response = await http.post(
     Uri.parse(Endpoint.lupaPassword),
@@ -208,12 +215,16 @@ class UserService {
   }
 }
 
+  // Reset Password
   Future<ResetPasswordResponse> resetPassword(ResetPasswordRequest request) async {
     final response = await http.post(
       Uri.parse(Endpoint.resetPassword),
       headers: {"Accept": "application/json"},
       body: request.toJson(),
     );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     final jsonResponse = jsonDecode(response.body);
     

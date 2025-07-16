@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:projectabsen/aplikasi/reset_passord_user.dart';
-import 'package:projectabsen/api/api_user.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String email;
@@ -13,30 +12,39 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+  // Controller for OTP input
   final TextEditingController _otpController = TextEditingController();
   bool isSubmitting = false;
-  bool isOtpValidLength = false; // ⬅️ untuk update kondisi tombol aktif
+  bool isOtpValidLength = false;
+
+  // Initialize the OTP controller listener
 
   @override
   void initState() {
     super.initState();
-    _otpController.addListener(() {
-      // perhatikan jika panjang OTP = 6
-      setState(() {
-        isOtpValidLength = _otpController.text.trim().length == 6;
-      });
+    _otpController.addListener(_onOtpChanged);
+  }
+
+  void _onOtpChanged() {
+    if (!mounted) return;
+    setState(() {
+      isOtpValidLength = _otpController.text.trim().length == 6;
     });
   }
 
-  void _submitOtp() async {
+  // Submit OTP dan Navigator ke ResetPasswordScreen
+
+  Future<void> _submitOtp() async {
     final enteredOtp = _otpController.text.trim();
     if (enteredOtp.length != 6) return;
 
     setState(() => isSubmitting = true);
+    FocusScope.of(context).unfocus();
 
     try {
-      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 300));
 
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -60,17 +68,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   @override
   void dispose() {
-    _otpController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff08325b),
+      backgroundColor: const Color(0xFF0C1D40),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          // Form untuk OTP
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -83,7 +91,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Enter your OTP code',
+                'Masukan kode OTP anda',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -110,17 +118,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   fieldWidth: 40,
                   inactiveColor: Colors.white,
                   activeColor: Colors.white,
-                  selectedColor: Color(0XFFFFCF50),
+                  selectedColor: Color(0xFFFFCF50),
                 ),
-                onChanged: (value) {},
+                onChanged: (_) {},
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: isOtpValidLength && !isSubmitting
-                      ? _submitOtp
-                      : null,
+                  onPressed:
+                      isOtpValidLength && !isSubmitting ? _submitOtp : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0XFFFFCF50),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -128,10 +135,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  // Submit OTP
                   child: isSubmitting
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          'Submit OTP',
+                          'Kirim OTP',
                           style: TextStyle(color: Colors.white),
                         ),
                 ),

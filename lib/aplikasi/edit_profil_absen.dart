@@ -16,6 +16,9 @@ class EditProfilScreen extends StatefulWidget {
 }
 
 class _EditProfilScreenState extends State<EditProfilScreen> {
+
+  //Manggil 
+
   final _formKey = GlobalKey<FormState>();
   final UserService userService = UserService();
 
@@ -39,6 +42,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     _loadUserProfile();
   }
 
+  //Manggil user profile
+
   Future<void> _loadUserProfile() async {
     try {
       final data = await userService.getProfile();
@@ -58,6 +63,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     }
   }
 
+  // Format tanggal untuk tampilan
+
   String formatTanggal(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
@@ -72,6 +79,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       }
     }
   }
+
+  // untuk update foto profil
 
   Future<void> _updatePhoto(File imageFile) async {
     try {
@@ -95,17 +104,41 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     }
   }
 
+  // Simpan perubahan profil
+
   Future<void> _simpanPerubahan() async {
     if (!_formKey.currentState!.validate()) return;
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Konfirmasi'),
-        content: const Text('Apakah Anda yakin ingin mengubah profil dan foto?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Center(
+          child: Text(
+            'Simpan Perubahan?',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin menyimpan perubahan profil?',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 15),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actionsPadding: const EdgeInsets.only(bottom: 12),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ya')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal', style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Simpan', style: TextStyle(color: Colors.blue)),
+          ),
         ],
       ),
     );
@@ -134,9 +167,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff08325b),
+      backgroundColor: const Color(0xFF0C1D40),
+
+      // Keterangan Informasi diri dan ada ubah profil
       appBar: AppBar(
-        backgroundColor: const Color(0xff08325b),
+        backgroundColor: const Color(0xFF0C1D40),
         elevation: 0,
         title: const Text('Informasi Diri', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -159,7 +194,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 24),
+                      // untuk update foto
                       GestureDetector(
                         onTap: () async {
                           if (_isPicking) return;
@@ -200,6 +235,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ],
                         ),
                       ),
+                      // Informasi Pribadi
                       const SizedBox(height: 24),
                       _buildSection(
                         title: 'Informasi Pribadi',
@@ -216,10 +252,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Row(
-                                children: [
-                                  const SizedBox(width: 1),
-                                  const Text(
-                                    'Reset Password',
+                                children: const [
+                                  SizedBox(width: 1),
+                                  // Reset Password
+                                  Text(
+                                    'Setel ulang kata sandi',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.blue,
@@ -233,6 +270,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ),
                         ],
                       ),
+                      // keluar Akun
                       _buildTrainingInfo(),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -240,11 +278,33 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           final confirm = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: const Text('Logout'),
-                              content: const Text('Apakah Anda yakin ingin logout?'),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              title: const Center(
+                                child: Text(
+                                  'Keluar Akun?',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                              content: const Text(
+                                'Apakah Anda yakin ingin keluar dari akun ini?',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              actionsAlignment: MainAxisAlignment.spaceEvenly,
+                              actionsPadding: const EdgeInsets.only(bottom: 12),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-                                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Logout')),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Batal', style: TextStyle(color: Colors.black)),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Keluar', style: TextStyle(color: Colors.red)),
+                                ),
                               ],
                             ),
                           );
@@ -255,9 +315,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
 
                             if (!context.mounted) return;
                             Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const UserScreen()),
-                            (route) => false,
-                      );
+                              MaterialPageRoute(builder: (context) => const UserScreen()),
+                              (route) => false,
+                            );
                           }
                         },
                         icon: const Icon(Icons.logout),
@@ -280,6 +340,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     );
   }
 
+  // Kotak Informasi 
+
   Widget _buildSection({required String title, required List<Widget> children}) {
     return Card(
       elevation: 2,
@@ -300,6 +362,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     );
   }
 
+  // update profil textfield
+
   Widget _buildTextField({required String label, required TextEditingController controller, bool required = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -315,6 +379,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       ),
     );
   }
+
+  // Kotak Informasi pelatihan
 
   Widget _buildTrainingInfo() {
     return Card(
@@ -338,7 +404,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.calendar_today_outlined, 'Akhir Batch', formatTanggal(akhirBatch)),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.school, 'Training', namaTraining ?? '-'),
+            _buildInfoRow(Icons.school, 'Pelatihan', namaTraining ?? '-'),
           ],
         ),
       ),
