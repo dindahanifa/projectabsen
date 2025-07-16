@@ -11,15 +11,10 @@ class RiwayatAbsenScreen extends StatefulWidget {
   State<RiwayatAbsenScreen> createState() => _RiwayatAbsenScreenState();
 }
 
-// menampilkan riwayat absen
-
 class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
-  // untuk menyimpan riwayat absen
   List<HistoryData> _riwayat = [];
   bool _isLoading = true;
   String? selectedMonth;
-
-  // untuk menginalisasi data awal
 
   @override
   void initState() {
@@ -28,8 +23,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
     selectedMonth = DateFormat('MMMM yyyy').format(now);
     _fetchRiwayatAbsen();
   }
-
-  // untuk mengambil riwayat absen dari API
 
   Future<void> _fetchRiwayatAbsen() async {
     setState(() => _isLoading = true);
@@ -51,8 +44,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
     }
   }
 
-  // untuk memndapatkan daftar bulan yang tersedia
-
   List<String> getAvailableMonths() {
     final now = DateTime.now();
     final year = now.year;
@@ -62,11 +53,7 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
     });
   }
 
-  // untuk memangun wiudget statistik
-
   Widget _buildStats(List<HistoryData> list) {
-
-    // menghitung jumlah masuk dan izin
     final masukCount = list.where((e) => e.status == 'hadir').length;
     final izinCount = list.where((e) => e.status == 'izin').length;
 
@@ -82,8 +69,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
         _avg(list.where((e) => e.checkInTime != null).map((e) => e.checkInTime!).toList()));
     final avgOut = _formatDuration(
         _avg(list.where((e) => e.checkOutTime != null).map((e) => e.checkOutTime!).toList()));
-
-        // untuk menampilkan statistik kehadiran
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -104,8 +89,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
     );
   }
 
-  // untuk menampilkan item statistik
-
   Widget _statItem(IconData icon, String value, String label) => Column(
         children: [
           Icon(icon, size: 18, color: Colors.white),
@@ -115,8 +98,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
           Text(label, style: const TextStyle(fontSize: 12)),
         ],
       );
-
-  // untuk mengonversi string ke duration
 
   Duration _stringToDuration(String hhmmss) {
     try {
@@ -165,7 +146,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
                   Container(
                     height: 48,
                     margin: const EdgeInsets.only(left: 16),
-                    // untuk memilih bulan
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -194,7 +174,6 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
                       ),
                     ),
                   ),
-                  // untuk menampilkan statistik
                   const SizedBox(height: 16),
                   if (filtered.isNotEmpty) _buildStats(filtered),
                   if (filtered.isNotEmpty) const SizedBox(height: 12),
@@ -215,12 +194,28 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
                                   ?.copyWith(color: Colors.white))),
                     ),
                   const SizedBox(height: 24),
+
+                  // Copyright section
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16, bottom: 24),
+                    child: Center(
+                      child: Text(
+                        '© 2025 Dinda Hanifa',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
     );
   }
 }
+
 class _AttendanceCard extends StatefulWidget {
   final HistoryData data;
   final VoidCallback onDelete;
@@ -230,7 +225,7 @@ class _AttendanceCard extends StatefulWidget {
   @override
   State<_AttendanceCard> createState() => _AttendanceCardState();
 }
-// delete absen
+
 class _AttendanceCardState extends State<_AttendanceCard> {
   bool _deleting = false;
 
@@ -271,7 +266,6 @@ class _AttendanceCardState extends State<_AttendanceCard> {
     final tanggal = DateTime.tryParse(widget.data.attendanceDate) ?? DateTime.now();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
-      // untuk menampilkan data absen
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xffDDEB9D),
@@ -330,7 +324,7 @@ class _AttendanceCardState extends State<_AttendanceCard> {
       ),
     );
   }
-  // untuk menampilkan baris data
+
   Widget _row(String label, String? value) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

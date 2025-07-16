@@ -1,4 +1,3 @@
-// UserScreen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:projectabsen/aplikasi/home_absen.dart';
@@ -221,7 +220,7 @@ class _UserScreenState extends State<UserScreen> {
               children: [
                 SizedBox(height: 80),
                 if (isSignIn)
-                  Text("Selamat Datang!", style: TextStyle(color: Colors.white, fontSize: 28, fontFamily: 'Intern' )),
+                  Text("Selamat Datang!", style: TextStyle(color: Colors.white, fontSize: 28, fontFamily: 'Intern')),
                 SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -244,6 +243,15 @@ class _UserScreenState extends State<UserScreen> {
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ForgotPasswordScreen())),
                     child: Text('Lupa kata sandi?', style: TextStyle(color: Colors.deepOrange)),
                   ),
+                SizedBox(height: 40),
+                Text(
+                  '© 2025 Dinda Hanifa',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
             ),
           )

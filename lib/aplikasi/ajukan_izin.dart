@@ -12,6 +12,7 @@ class AjukanIzinScreen extends StatefulWidget {
 }
 
 class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
+  
   final TextEditingController _alasanController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
@@ -152,7 +153,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
                     child: Padding(
                       padding: EdgeInsets.only(bottom: 8.0),
                       child: Text(
-                        '© copyright 2025 Dinda Hanifa',
+                        'Copyright © 2025 Dinda Hanifa',
                         style: TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                     ),
