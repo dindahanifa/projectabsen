@@ -39,6 +39,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     _loadUserProfile();
   }
 
+  // Untuk mengambil profil user berdasarkan yang sudah di regis
   Future<void> _loadUserProfile() async {
     try {
       final data = await userService.getProfile();
@@ -58,6 +59,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     }
   }
 
+  // untuk format tanggal
+
   String formatTanggal(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
@@ -72,6 +75,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       }
     }
   }
+
+  // untuk memanggil API untuk update foto
 
   Future<void> _updatePhoto(File imageFile) async {
     try {
@@ -94,6 +99,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       );
     }
   }
+
+  // untuk menyimpan perubahan
 
   Future<void> _simpanPerubahan() async {
     if (!_formKey.currentState!.validate()) return;
@@ -174,6 +181,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
+              // untuk update foto
               padding: const EdgeInsets.all(16),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -221,6 +229,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ],
                         ),
                       ),
+                      // untuk kolom informasi pribadi
                       const SizedBox(height: 24),
                       _buildSection(
                         title: 'Informasi Pribadi',
@@ -254,6 +263,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ),
                         ],
                       ),
+                      // untu
                       _buildTrainingInfo(),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(

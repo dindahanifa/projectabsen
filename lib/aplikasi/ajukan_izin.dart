@@ -12,7 +12,7 @@ class AjukanIzinScreen extends StatefulWidget {
 }
 
 class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
-  
+  // 
   final TextEditingController _alasanController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
@@ -24,6 +24,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     _loadToken();
   }
 
+  // Mengambil token
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -31,7 +32,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     });
   }
 
-  // 
+  // Memanggil API untuk izin
   Future<void> _submitIzin() async {
     if (_alasanController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,6 +64,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     }
   }
 
+  // untuk milih data sesuai tanggal
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -89,6 +91,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
       ),
       backgroundColor: const Color(0xFF0C1D40),
       body: Padding(
+        // Form ajukan izin
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -133,6 +136,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
                       ),
                     ),
                   ),
+                  // Untuk mengirim izin
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
