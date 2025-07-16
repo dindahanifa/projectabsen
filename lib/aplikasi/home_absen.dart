@@ -18,9 +18,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  
-  // untuk tombol buttom navigator
-
   int _selectedIndex = 0;
 
   void _onTabTapped(int index) {
@@ -80,8 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Isi dalam halaman pertama
-
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
 
@@ -91,10 +86,10 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final UserService userService = UserService();
-  Map<String, dynamic>? _userData; // mengambil data user
-  List<HistoryData> _riwayat = []; // mengambil data absen
+  Map<String, dynamic>? _userData;
+  List<HistoryData> _riwayat = [];
   bool _isLoading = true;
-  double? distanceFromPlace; //untuk lokasi
+  double? distanceFromPlace;
   String? currentAddress;
 
   final targetLat = -0.933094;
@@ -108,8 +103,6 @@ class _HomeContentState extends State<HomeContent> {
     _calculateDistance();
   }
 
-  // mengambil data user untuk profil
-
   Future<void> _loadUserProfile() async {
     try {
       final data = await userService.getProfile();
@@ -121,8 +114,6 @@ class _HomeContentState extends State<HomeContent> {
       debugPrint('Gagal load profil: $e');
     }
   }
-
-  // mengambil data absen
 
   Future<void> _fetchRiwayatAbsen() async {
     setState(() => _isLoading = true);
@@ -140,8 +131,6 @@ class _HomeContentState extends State<HomeContent> {
       debugPrint('Gagal ambil riwayat: $e');
     }
   }
-
-  // menghitung jarak lokasi
 
   Future<void> _calculateDistance() async {
     try {
@@ -165,8 +154,6 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  // Data waktu 
-
   String _formatDate(String dateString) {
     final date = DateTime.tryParse(dateString);
     if (date == null) return '-';
@@ -189,8 +176,6 @@ class _HomeContentState extends State<HomeContent> {
     if (_userData == null || _isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    // data profil
 
     final user = _userData!;
     final name = user['name']?.toString() ?? 'Pengguna';
@@ -253,8 +238,6 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
             ),
-
-            // jarak lokasi
             const SizedBox(height: 24),
             if (distanceFromPlace != null)
               Container(
@@ -273,8 +256,6 @@ class _HomeContentState extends State<HomeContent> {
                   ],
                 ),
               ),
-
-              // riwayat kehadiran
             const SizedBox(height: 24),
             const Text("Riwayat Kehadiran", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 8),
@@ -333,8 +314,6 @@ class _HomeContentState extends State<HomeContent> {
                 );
               },
             ),
-
-            // Kalender
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(12),
@@ -373,7 +352,14 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 16),
+            const Center(
+              child: Text(
+                '© 2025 Dinda Hanifa',
+                style: TextStyle(fontSize: 12, color: Colors.white54),
+              ),
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

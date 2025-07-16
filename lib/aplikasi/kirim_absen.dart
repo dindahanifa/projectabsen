@@ -11,7 +11,6 @@ import 'package:projectabsen/api/api_absen.dart';
 import 'package:projectabsen/model/absen_request.dart';
 import 'package:projectabsen/model/absen_co_request.dart';
 import 'package:projectabsen/model/absen_today.dart';
-import 'package:projectabsen/aplikasi/ajukan_izin.dart';
 
 class KirimAbsenScreen extends StatefulWidget {
   const KirimAbsenScreen({super.key});
@@ -43,8 +42,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     super.dispose();
   }
 
-  //memanggil waktu untuk absen
-
   void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -74,8 +71,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     await _fetchTodayAttendanceStatus();
     if (mounted) setState(() => _isLoading = false);
   }
-
-  //memanggil lokasi 
 
   Future<void> _getCurrentLocation() async {
     try {
@@ -115,8 +110,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
     }
   }
 
-  //absen masuk
-
   Future<void> _handleCheckIn() async {
     if (_currentPosition == null) return;
     try {
@@ -144,8 +137,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
-  //absen keluar
 
   Future<void> _handleCheckOut() async {
     if (_currentPosition == null) return;
@@ -182,7 +173,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                // Lokasi google maps
                 Positioned.fill(
                   child: _currentPosition == null
                       ? const Center(child: Text('Lokasi tidak tersedia'))
@@ -227,19 +217,16 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                       ],
                     ),
                     child: Column(
-                      // lokasi anda
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text("📍 Lokasi Anda", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                         const SizedBox(height: 6),
                         Text(_currentAddress, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: 12),
-                        // status absen
                         Text(
                           "Status: ${_todayAbsenData?.status == "masuk" ? "Sudah Check In" : "Belum Check In"}",
                           style: const TextStyle(fontSize: 14),
                         ),
-                        // tombol check in
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: _todayAbsenData?.checkInTime == null ? _handleCheckIn : null,
@@ -251,7 +238,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                             minimumSize: const Size.fromHeight(45),
                           ),
                         ),
-                        // tombol check out
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
                           onPressed: _todayAbsenData?.checkOutTime == null &&
@@ -266,7 +252,6 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                             minimumSize: const Size.fromHeight(45),
                           ),
                         ),
-                        // untuk ajukan izin
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
                           onPressed: () {
@@ -282,6 +267,11 @@ class _KirimAbsenScreenState extends State<KirimAbsenScreen> {
                             foregroundColor: Colors.white,
                             minimumSize: const Size.fromHeight(45),
                           ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          '© 2025 Dinda Hanifa',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
                     ),

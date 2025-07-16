@@ -10,8 +10,6 @@ class ForgotPasswordScreen extends StatefulWidget {
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-// memanggil API untuk mengirim email verifikasi
-
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -25,14 +23,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
       final response = await _userService.forgotPassword(_emailController.text.trim());
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response.message)),
       );
-      await Future.delayed(Duration(seconds: 2));
+
+      await Future.delayed(const Duration(seconds: 2));
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => OtpVerificationScreen(email: _emailController.text),
+          builder: (context) => OtpVerificationScreen(email: _emailController.text.trim()),
         ),
       );
     } catch (e) {
@@ -41,7 +42,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         SnackBar(content: Text('Gagal: ${e.toString()}')),
       );
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -72,7 +73,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          // Form untuk lupa password
           child: Form(
             key: _formKey,
             child: Column(
@@ -89,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   'Silakan masukkan email Anda di bawah ini, lalu kami akan membantu Anda memulihkan akun Anda.',
-                  style: TextStyle(fontSize: 15, color: Colors.white),
+                  style: TextStyle(fontSize: 15, color: Colors.white70),
                 ),
                 const SizedBox(height: 24),
                 TextFormField(
@@ -99,7 +99,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email',
                     labelStyle: const TextStyle(color: Colors.white),
-                    hintText: 'example@email.com',
+                    hintText: 'contoh@email.com',
                     hintStyle: const TextStyle(color: Colors.white54),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -121,7 +121,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     return null;
                   },
                 ),
-                // Tombol untuk mengirim email verifikasi
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -135,16 +134,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                     child: _loading
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
                           )
                         : const Text(
                             'Lanjutkan',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                   ),
                 ),
-                // link untuk kembali ke halaman login
                 const SizedBox(height: 24),
                 Center(
                   child: GestureDetector(

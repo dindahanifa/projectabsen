@@ -16,9 +16,6 @@ class EditProfilScreen extends StatefulWidget {
 }
 
 class _EditProfilScreenState extends State<EditProfilScreen> {
-
-  //Manggil 
-
   final _formKey = GlobalKey<FormState>();
   final UserService userService = UserService();
 
@@ -42,8 +39,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     _loadUserProfile();
   }
 
-  //Manggil user profile
-
   Future<void> _loadUserProfile() async {
     try {
       final data = await userService.getProfile();
@@ -63,8 +58,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     }
   }
 
-  // Format tanggal untuk tampilan
-
   String formatTanggal(String? tanggal) {
     if (tanggal == null || tanggal.isEmpty) return '-';
     try {
@@ -79,8 +72,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       }
     }
   }
-
-  // untuk update foto profil
 
   Future<void> _updatePhoto(File imageFile) async {
     try {
@@ -103,8 +94,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       );
     }
   }
-
-  // Simpan perubahan profil
 
   Future<void> _simpanPerubahan() async {
     if (!_formKey.currentState!.validate()) return;
@@ -168,8 +157,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C1D40),
-
-      // Keterangan Informasi diri dan ada ubah profil
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C1D40),
         elevation: 0,
@@ -194,7 +181,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // untuk update foto
                       GestureDetector(
                         onTap: () async {
                           if (_isPicking) return;
@@ -235,7 +221,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ],
                         ),
                       ),
-                      // Informasi Pribadi
                       const SizedBox(height: 24),
                       _buildSection(
                         title: 'Informasi Pribadi',
@@ -254,7 +239,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                               child: Row(
                                 children: const [
                                   SizedBox(width: 1),
-                                  // Reset Password
                                   Text(
                                     'Setel ulang kata sandi',
                                     style: TextStyle(
@@ -270,7 +254,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ),
                         ],
                       ),
-                      // keluar Akun
                       _buildTrainingInfo(),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -329,6 +312,17 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
+                      const Spacer(),
+                      const Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 16.0, bottom: 8.0),
+                          child: Text(
+                            '© 2025 Dinda Hanifa',
+                            style: TextStyle(color: Colors.white60, fontSize: 12),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -339,8 +333,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       ),
     );
   }
-
-  // Kotak Informasi 
 
   Widget _buildSection({required String title, required List<Widget> children}) {
     return Card(
@@ -362,8 +354,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
     );
   }
 
-  // update profil textfield
-
   Widget _buildTextField({required String label, required TextEditingController controller, bool required = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -379,8 +369,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
       ),
     );
   }
-
-  // Kotak Informasi pelatihan
 
   Widget _buildTrainingInfo() {
     return Card(

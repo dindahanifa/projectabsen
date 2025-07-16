@@ -30,7 +30,7 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     });
   }
 
-  // Kirim Izin
+  // 
   Future<void> _submitIzin() async {
     if (_alasanController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +62,6 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
     }
   }
 
-  // Milih data
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -85,11 +84,9 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
           style: TextStyle(color: Colors.white, fontFamily: 'Intern'),
         ),
         backgroundColor: const Color(0xFF0C1D40),
-        iconTheme: const IconThemeData(color: Colors.white), 
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: const Color(0xFF0C1D40),
-
-      // Tanggal izin, Alasan Izin, Kirim Izin
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
@@ -146,6 +143,17 @@ class _AjukanIzinScreenState extends State<AjukanIzinScreen> {
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  const Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        '© copyright 2025 Dinda Hanifa',
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                     ),
                   )

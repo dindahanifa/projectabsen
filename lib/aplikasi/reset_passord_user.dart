@@ -4,22 +4,24 @@ import 'package:projectabsen/model/reset_password.dart';
 import 'package:projectabsen/aplikasi/succes_screen.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  // untuk mengirim email dan OTP
   final String email;
   final String otp;
 
-  const ResetPasswordScreen({super.key, required this.email, required this.otp});
+  const ResetPasswordScreen({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-// untuk mengirim  reset password ke API
-
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
   bool _isStrong = false;
@@ -35,8 +37,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           RegExp(r'[0-9]').hasMatch(password);
     });
   }
-  
-  // untuk mengirim password baru ke API
 
   Future<void> _submitNewPassword() async {
     if (!_formKey.currentState!.validate()) return;
@@ -53,19 +53,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const PasswordSuccessScreen()),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? "Password berhasil direset")),
       );
 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const PasswordSuccessScreen()),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Gagal reset password: $e")),
       );
     } finally {
-      if (!mounted) return;
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -81,7 +83,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0C1D40),
       body: SafeArea(
-        // untuk menampilkan form reset password
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Form(
@@ -89,6 +90,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Tombol tutup
                 Align(
                   alignment: Alignment.topLeft,
                   child: IconButton(
@@ -96,20 +98,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                // judul halaman
                 const SizedBox(height: 16),
+                // Judul
                 const Text(
                   "Sukses!",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                // deskripsi halaman
                 const SizedBox(height: 8),
                 const Text(
                   "Mari buat kata sandi baru untuk akun Anda.",
                   style: TextStyle(fontSize: 15, color: Colors.white),
                 ),
-                // input untuk password baru
                 const SizedBox(height: 32),
+                // Input password baru
                 TextFormField(
                   controller: _newPasswordController,
                   obscureText: _obscureNewPassword,
@@ -136,13 +141,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       return 'Password wajib diisi';
                     }
                     if (!_isStrong) {
-                      return 'Gunakan minimal 8 karakter kombinasi huruf dan angka';
+                      return 'Gunakan minimal 8 karakter kombinasi huruf besar, kecil & angka';
                     }
                     return null;
                   },
                 ),
-                // indikator kekuatan password
                 const SizedBox(height: 8),
+                // Indikator kekuatan password
                 if (_newPasswordController.text.isNotEmpty)
                   Row(
                     children: [
@@ -153,7 +158,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _isStrong ? 'Strong password!' : 'Weak password',
+                        _isStrong ? 'Password kuat!' : 'Password lemah',
                         style: TextStyle(
                           color: _isStrong ? Colors.green : Colors.red,
                           fontWeight: FontWeight.w500,
@@ -161,8 +166,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       ),
                     ],
                   ),
-                // input untuk konfirmasi password
                 const SizedBox(height: 24),
+                // Konfirmasi password
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
@@ -193,8 +198,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     return null;
                   },
                 ),
-                // untuk kirim password
                 const SizedBox(height: 32),
+                // Tombol submit
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -213,7 +218,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                   ),
-                )
+                ),
               ],
             ),
           ),

@@ -12,12 +12,9 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  // Controller for OTP input
   final TextEditingController _otpController = TextEditingController();
   bool isSubmitting = false;
   bool isOtpValidLength = false;
-
-  // Initialize the OTP controller listener
 
   @override
   void initState() {
@@ -31,8 +28,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       isOtpValidLength = _otpController.text.trim().length == 6;
     });
   }
-
-  // Submit OTP dan Navigator ke ResetPasswordScreen
 
   Future<void> _submitOtp() async {
     final enteredOtp = _otpController.text.trim();
@@ -60,14 +55,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         SnackBar(content: Text("Verifikasi OTP gagal: $e")),
       );
     } finally {
-      if (mounted) {
-        setState(() => isSubmitting = false);
-      }
+      if (mounted) setState(() => isSubmitting = false);
     }
   }
 
   @override
   void dispose() {
+    _otpController.dispose(); // penting!
     super.dispose();
   }
 
@@ -78,7 +72,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          // Form untuk OTP
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -100,9 +93,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'We just sent you a message, please open it and\nenter the OTP code in that message below to\nidentify your account.',
+                'Kami baru saja mengirimkan kode OTP ke email Anda.\nSilakan masukkan 6 digit kode tersebut di bawah ini.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 32),
               PinCodeTextField(
@@ -129,20 +122,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   onPressed:
                       isOtpValidLength && !isSubmitting ? _submitOtp : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0XFFFFCF50),
+                    backgroundColor: const Color(0xFFFFCF50),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  // Submit OTP
                   child: isSubmitting
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
                       : const Text(
                           'Kirim OTP',
                           style: TextStyle(color: Colors.white),
                         ),
                 ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                '© 2025 Dinda Hanifa',
+                style: TextStyle(color: Colors.white60, fontSize: 12),
               ),
             ],
           ),
