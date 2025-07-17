@@ -156,11 +156,12 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
                             child: ChoiceChip(
                               label: Text(month),
                               selected: isSelected,
-                              selectedColor: Colors.white,
+                              selectedColor: const Color(0XFFDDEB9D),
+                              backgroundColor: Colors.white,   
                               labelStyle: TextStyle(
                                 color: isSelected
                                     ? Colors.black
-                                    : const Color(0XFFFFCF50),
+                                    : Colors.black,   
                                 fontWeight: isSelected
                                     ? FontWeight.bold
                                     : FontWeight.normal,
@@ -191,7 +192,7 @@ class _RiwayatAbsenScreenState extends State<RiwayatAbsenScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge
-                                  ?.copyWith(color: Colors.white))),
+                                  ?.copyWith(color: Color(0XFFFDF5AA)))),
                     ),
                   const SizedBox(height: 24),
 

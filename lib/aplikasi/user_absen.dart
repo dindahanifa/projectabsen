@@ -215,7 +215,8 @@ class _UserScreenState extends State<UserScreen> {
             width: double.infinity,
           ),
           SingleChildScrollView(
-            padding: EdgeInsets.all(32),
+            padding: EdgeInsets.all(32), 
+            
             child: Column(
               children: [
                 SizedBox(height: 80),
@@ -356,7 +357,7 @@ class _UserScreenState extends State<UserScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         gradient: LinearGradient(
-          colors: [Color(0xFFB0D9EE), Color(0xFF86B9E7)],
+          colors: [Color(0XFFFDF5AA), Color(0xFFFFCF50), Color(0XFFFDF5AA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

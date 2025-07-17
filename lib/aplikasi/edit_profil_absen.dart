@@ -263,7 +263,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           ),
                         ],
                       ),
-                      // untu
+
                       _buildTrainingInfo(),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -320,17 +320,6 @@ class _EditProfilScreenState extends State<EditProfilScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      const Spacer(),
-                      const Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 16.0, bottom: 8.0),
-                          child: Text(
-                            '© 2025 Dinda Hanifa',
-                            style: TextStyle(color: Colors.white60, fontSize: 12),
-                          ),
                         ),
                       ),
                     ],
